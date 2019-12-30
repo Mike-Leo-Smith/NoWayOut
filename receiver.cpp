@@ -29,7 +29,7 @@ int main() {
     frame_socket.connect({address, 6677});
 
     // video for test
-    cv::VideoCapture camera{"/Users/mike/Downloads/郑少锟 2019-12-12 11.59.15.mp4"};
+    cv::VideoCapture camera{"data/test.mp4"};
     cv::Mat raw_frame;
     cv::Mat eye_frame;
     cv::Mat frame;
@@ -37,7 +37,7 @@ int main() {
     auto jpeg_handle = tjInitCompress();
 
     frame.create(eye_frame_height, eye_frame_width * 2ul, CV_8UC3);
-    std::vector<uint8_t> frame_buffer;
+    std::vector<uint8_t> frame_buffer(eye_frame_width * eye_frame_height * 2ul * 3ul + 4ul);
 
     auto frame_count = 0ul;
     auto last_time_point = std::chrono::high_resolution_clock::now();
@@ -47,11 +47,11 @@ int main() {
 
             // receive head pose
             std::array<uint8_t, 4> json_size_buffer{};
-            pose_socket.read_some(asio::buffer(json_size_buffer.data(), 4ul));
+            asio::read(pose_socket, asio::buffer(json_size_buffer.data(), 4ul));
             auto size = u8vec4_to_uint(json_size_buffer);
             static thread_local uint8_t buffer[4096ul];
+            asio::read(pose_socket, asio::buffer(buffer, size));
             static thread_local char json_string[4096ul];
-            for (auto offset = 0ul; offset < size; offset += pose_socket.receive(asio::buffer(buffer + offset, 4096ul - offset))) {}
             ZSTD_decompress(json_string, 4096, buffer, size);
 
             std::string eye{rapidjson::Document{}.Parse(json_string)["eye"].GetString()};
@@ -72,12 +72,9 @@ int main() {
 
                 // send frame
                 auto jpeg_size = 0ul;
-                frame_buffer.resize(eye_frame_width * eye_frame_height * 2ul * 3ul);
-                tjCompress(jpeg_handle, frame.data, eye_frame_width * 2ul, 0, eye_frame_height, 3, frame_buffer.data(), &jpeg_size, TJSAMP_420, 70, TJFLAG_FASTDCT);
-                frame_buffer.resize(jpeg_size);
-                auto jpeg_size_buffer = uint_to_u8vec4(jpeg_size);
-                frame_socket.write_some(asio::buffer(jpeg_size_buffer.data(), 4ul));
-                for (auto offset = 0ul; offset < jpeg_size; offset += frame_socket.send(asio::buffer(frame_buffer.data() + offset, jpeg_size - offset))) {}
+                tjCompress(jpeg_handle, frame.data, eye_frame_width * 2ul, 0, eye_frame_height, 3, frame_buffer.data() + 4ul, &jpeg_size, TJSAMP_420, 75, TJFLAG_FASTDCT);
+                *reinterpret_cast<std::array<uint8_t, 4ul> *>(frame_buffer.data()) = uint_to_u8vec4(jpeg_size);
+                asio::write(frame_socket, asio::buffer(frame_buffer.data(), jpeg_size + 4ul));
 
                 if (++frame_count == 10ul) {
                     using namespace std::chrono_literals;
