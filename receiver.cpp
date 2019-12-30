@@ -21,7 +21,7 @@ int main() {
 
     // connect
     asio::io_service io_service;
-    auto address = asio::ip::address_v4::from_string("183.173.118.190");
+    auto address = asio::ip::address_v4::from_string("192.168.1.142");
     asio::ip::tcp::socket pose_socket{io_service};
     asio::ip::tcp::socket frame_socket{io_service};
     pose_socket.connect({address, 23333});
@@ -38,7 +38,6 @@ int main() {
     center_frame.create(height, width * 2ul, CV_8UC3);
 
     std::vector<uint8_t> frame_buffer;
-    frame_buffer.resize(width * height * 2ul * 3ul);
 
     auto frame_count = 0ul;
     auto last_time_point = std::chrono::high_resolution_clock::now();
@@ -61,26 +60,34 @@ int main() {
             // read frame
             camera >> raw_frame;
             cv::resize(raw_frame, *frame, cv::Size{static_cast<int32_t>(frame_width), static_cast<int32_t>(frame_height)});
-            cv::imshow("Frame", *frame);
             cv::cvtColor(*frame, *frame, cv::COLOR_BGR2RGB);
-            cv::waitKey(1);
+
+            using namespace std::chrono_literals;
 
             // send frame
             auto frame_size = frame_width * frame_height * 3ul;
-            auto jpeg_handle = tjInitCompress();
             auto jpeg_size = 0ul;
+            auto t0 = std::chrono::high_resolution_clock::now();
+            auto jpeg_handle = tjInitCompress();
+            frame_buffer.resize(frame_size);
             tjCompress(jpeg_handle, frame->data, frame_width, 0, frame_height, tjPixelSize[TJPF_RGB], frame_buffer.data(), &jpeg_size, TJSAMP_444, 75, TJFLAG_FASTDCT);
+            frame_buffer.resize(jpeg_size);
             std::cout << tjGetErrorStr2(jpeg_handle) << std::endl;
             tjDestroy(jpeg_handle);
+            auto t1 = std::chrono::high_resolution_clock::now();
             auto size_buffer = uint_to_u8vec4(jpeg_size);
             frame_socket.write_some(asio::buffer(size_buffer.data(), size_buffer.size()));
             for (auto offset = 0ul; offset < jpeg_size; offset += frame_socket.send(asio::buffer(frame_buffer.data() + offset, jpeg_size - offset))) {}
 
             std::cout << "Compress size = " << jpeg_size << std::endl;
             std::cout << "Compress ratio = " << static_cast<double>(jpeg_size) / static_cast<double>(frame_size) << std::endl;
+            std::cout << "Compress time = " << (t1 - t0) / 1ns * 1e-6 << " ms" << std::endl;
+
+            cv::imdecode(frame_buffer, cv::IMREAD_UNCHANGED, frame);
+            cv::imshow("Frame", *frame);
+            cv::waitKey(1);
 
             if (++frame_count == 10ul) {
-                using namespace std::chrono_literals;
                 auto current_time_point = std::chrono::high_resolution_clock::now();
                 auto seconds = (current_time_point - last_time_point) / 1ns * 1e-9;
                 std::cout << "FPS: " << frame_count / seconds << std::endl;
