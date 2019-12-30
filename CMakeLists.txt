@@ -25,6 +25,7 @@ set(RAPIDJSON_HAS_STDSTRING  ON CACHE STRING "" FORCE)
 add_subdirectory(thirdparty/rapidjson)
 include_directories(thirdparty/rapidjson/include)
 
+set(WITH_JPEG8 ON CACHE BOOL "" FORCE)
 add_subdirectory(thirdparty/libjpeg-turbo)
 include_directories(thirdparty/libjpeg-turbo)
 link_libraries(turbojpeg-static)
@@ -33,4 +34,4 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 link_libraries(${OpenCV_LIBS})
 
-add_executable(Receiver receiver.cpp)
+add_executable(Receiver main.cpp)
