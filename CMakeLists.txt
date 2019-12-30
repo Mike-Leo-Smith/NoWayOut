@@ -12,6 +12,10 @@ add_compile_definitions(ASIO_STANDALONE)
 include_directories(thirdparty)
 include_directories(thirdparty/asio)
 
+add_subdirectory(thirdparty/zstd/build/cmake)
+include_directories(thirdparty/zstd/lib)
+link_libraries(libzstd_static)
+
 set(RAPIDJSON_BUILD_DOC OFF CACHE STRING "" FORCE)
 set(RAPIDJSON_BUILD_EXAMPLES OFF CACHE STRING "" FORCE)
 set(RAPIDJSON_BUILD_TESTS OFF CACHE STRING "" FORCE)
