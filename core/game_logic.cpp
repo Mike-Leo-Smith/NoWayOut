@@ -3,3 +3,7 @@
 //
 
 #include "game_logic.h"
+
+void GameLogic::update(const DisplayState &display_state, const GestureState &gesture_state) {
+
+}

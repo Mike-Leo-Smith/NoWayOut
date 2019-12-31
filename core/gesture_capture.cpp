@@ -3,3 +3,7 @@
 //
 
 #include "gesture_capture.h"
+
+void GestureCapture::update(const GameState &game_state) {
+
+}
