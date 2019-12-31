@@ -10,22 +10,8 @@
 
 #include <opencv2/opencv.hpp>
 
-#include <core/config/config.h>
-
-enum struct DisplayMode {
-    STEREO,
-    CENTER
-};
-
-struct DisplayState {
-    
-    float time;
-    DisplayMode mode;
-    glm::mat4 view_matrix[2];
-    glm::mat4 projection_matrix[2];
-    
-    [[nodiscard]] static DisplayState from_json_string(std::string_view json_string);
-};
+#include <config/config.h>
+#include <display/display_state.h>
 
 struct GameState;
 

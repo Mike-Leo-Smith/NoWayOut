@@ -5,7 +5,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <core/config/config.h>
+#include <config/config.h>
+#include <display/display.h>
 
 int main() {
     
@@ -26,6 +27,9 @@ int main() {
     
     gladLoadGL();
     
+    auto display = Display::create();
+    display->initialize();
+    
     while (!glfwWindowShouldClose(window)) {
         
         glfwPollEvents();
@@ -34,11 +38,10 @@ int main() {
         auto frame_height = 0;
         glfwGetFramebufferSize(window, &frame_width, &frame_height);
         
-        glViewport(0, 0, frame_width, frame_height);
-        glScissor(0, 0, frame_width, frame_height);
-        
-        glClearColor(1.0, 0.7, 0.5, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
+        DisplayState display_state{};
+        display_state.time = static_cast<float>(glfwGetTime());
+        display_state.mode = DisplayMode::STEREO;
+        display->draw(display_state, frame_width, frame_height);
         
         glfwSwapBuffers(window);
     }

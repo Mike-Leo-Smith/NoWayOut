@@ -7,7 +7,7 @@
 #include <memory>
 #include <asio/asio.hpp>
 
-#include <core/config/config.h>
+#include <config/config.h>
 #include "frame_render.h"
 
 class Network {

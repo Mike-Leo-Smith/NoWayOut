@@ -3,7 +3,7 @@
 // Copyright (c) 2019 Mike Smith. All rights reserved.
 //
 
-#include <core/util/util.h>
+#include <util/util.h>
 #include "shader.h"
 
 std::unique_ptr<Shader> Shader::create(const std::string &vs_source, const std::string &fs_source) {
