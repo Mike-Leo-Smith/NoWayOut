@@ -78,13 +78,17 @@ int main() {
             if (t_start == 0.0) {
                 t_start = time;
             }
-            auto frame_index = static_cast<uint32_t>((time - t_start) * 30.0);
-            if (frame_index >= raw_frames.size()) {
+            auto dt = time - t_start;
+            auto frame_index = dt * 30.0;
+            auto frame_index_lower = static_cast<uint32_t>(frame_index);
+            auto frame_index_upper = static_cast<uint32_t>(std::ceil(frame_index));
+            if (frame_index_upper >= raw_frames.size()) {
                 break;
             }
 
             // read frame
-            auto &&raw_frame = raw_frames[frame_index];
+            auto t = frame_index - frame_index_lower;
+            auto raw_frame = raw_frames[frame_index_lower] * (1 - t) + raw_frames[frame_index_upper] * t;
             if (mode == "stereo") {
                 cv::resize(raw_frame, eye_frame, cv::Size2i{eye_frame_width, eye_frame_height});
                 eye_frame.copyTo(frame(cv::Rect{0, 0, eye_frame_width, eye_frame_height}));
