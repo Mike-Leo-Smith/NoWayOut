@@ -15,6 +15,8 @@ include_directories(thirdparty)
 include_directories(thirdparty/asio)
 
 set(ZSTD_BUILD_PROGRAMS OFF CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_STATIC ON CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 add_subdirectory(thirdparty/zstd/build/cmake)
 include_directories(thirdparty/zstd/lib)
 link_libraries(libzstd_static)
