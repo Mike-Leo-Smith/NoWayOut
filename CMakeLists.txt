@@ -3,7 +3,8 @@ project(NoWayOut)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_ASM_NASM_COMPILER nasm)
-set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake)
 
 set(BUILD_SHARED_LIBS OFF)
 
@@ -25,10 +26,9 @@ set(RAPIDJSON_HAS_STDSTRING  ON CACHE STRING "" FORCE)
 add_subdirectory(thirdparty/rapidjson)
 include_directories(thirdparty/rapidjson/include)
 
-set(WITH_JPEG8 ON CACHE BOOL "" FORCE)
-add_subdirectory(thirdparty/libjpeg-turbo)
-include_directories(thirdparty/libjpeg-turbo)
-link_libraries(turbojpeg-static)
+find_package(TurboJPEG REQUIRED)
+include_directories(${TurboJPEG_INCLUDE_DIRS})
+link_libraries(${TurboJPEG_LIBRARIES})
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
