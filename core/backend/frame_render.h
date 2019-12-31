@@ -10,7 +10,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "config.h"
+#include <core/config/config.h>
 
 enum struct DisplayMode {
     STEREO,

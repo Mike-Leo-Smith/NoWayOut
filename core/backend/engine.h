@@ -11,7 +11,7 @@
 #include <string_view>
 #include <asio/asio.hpp>
 
-#include "config.h"
+#include <core/config/config.h>
 
 #include "network.h"
 #include "frame_render.h"

@@ -5,7 +5,7 @@
 #include <zstd.h>
 #include <iostream>
 #include <turbojpeg.h>
-#include "util.h"
+#include <core/util/util.h>
 #include "network.h"
 
 DisplayState Network::receive_display_state() {
