@@ -6,6 +6,7 @@ set(CMAKE_ASM_NASM_COMPILER nasm)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake)
 
+set(BUILD_STATIC_LIBS ON)
 set(BUILD_SHARED_LIBS OFF)
 
 add_compile_definitions(ASIO_STANDALONE)
@@ -33,5 +34,13 @@ link_libraries(${TurboJPEG_LIBRARIES})
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 link_libraries(${OpenCV_LIBS})
+
+add_compile_definitions(GLM_FORCE_AVX2)
+add_subdirectory(thirdparty/glm)
+link_libraries(glm_static)
+
+add_subdirectory(core)
+include_directories(.)
+link_libraries(NoWayOutCore)
 
 add_executable(Receiver main.cpp)

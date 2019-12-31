@@ -51,7 +51,7 @@ int main() {
     auto jpeg_handle = tjInitCompress();
 
     frame.create(eye_frame_height, eye_frame_width * 2ul, CV_8UC3);
-    std::vector<uint8_t> frame_buffer(eye_frame_width * eye_frame_height * 2ul * 3ul + 4ul);
+    std::vector<uint8_t> compressed_frame_buffer(eye_frame_width * eye_frame_height * 2ul * 3ul + 4ul);
 
     auto frame_count = 0ul;
     auto last_time_point = std::chrono::high_resolution_clock::now();
@@ -99,9 +99,9 @@ int main() {
 
             // send frame
             auto jpeg_size = 0ul;
-            tjCompress(jpeg_handle, frame.data, eye_frame_width * 2ul, 0, eye_frame_height, 3, frame_buffer.data() + 4ul, &jpeg_size, TJSAMP_444, 70, TJFLAG_FASTDCT);
-            *reinterpret_cast<std::array<uint8_t, 4ul> *>(frame_buffer.data()) = uint_to_u8vec4(jpeg_size);
-            asio::write(frame_socket, asio::buffer(frame_buffer.data(), jpeg_size + 4ul));
+            tjCompress(jpeg_handle, frame.data, eye_frame_width * 2ul, 0, eye_frame_height, 3, compressed_frame_buffer.data() + 4ul, &jpeg_size, TJSAMP_444, 70, TJFLAG_FASTDCT);
+            *reinterpret_cast<std::array<uint8_t, 4ul> *>(compressed_frame_buffer.data()) = uint_to_u8vec4(jpeg_size);
+            asio::write(frame_socket, asio::buffer(compressed_frame_buffer.data(), jpeg_size + 4ul));
 
             if (++frame_count == 10ul) {
                 using namespace std::chrono_literals;
