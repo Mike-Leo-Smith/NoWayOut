@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.10)
 project(NoWayOut)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -9,7 +9,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake)
 set(BUILD_STATIC_LIBS ON)
 set(BUILD_SHARED_LIBS OFF)
 
-add_compile_definitions(ASIO_STANDALONE)
+add_definitions(-DASIO_STANDALONE)
 
 include_directories(thirdparty)
 include_directories(thirdparty/asio)
@@ -31,7 +31,7 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 link_libraries(${OpenCV_LIBS})
 
-add_compile_definitions(GLM_FORCE_AVX2)
+add_definitions(-DGLM_FORCE_AVX2)
 add_subdirectory(thirdparty/glm)
 link_libraries(glm_static)
 

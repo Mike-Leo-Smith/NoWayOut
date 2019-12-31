@@ -48,12 +48,14 @@ void FrameRender::update(const GameState &game_state, const DisplayState &displa
     
     auto t = frame_index - frame_index_lower;
     auto raw_frame = _video_frames[frame_index_lower] * (1 - t) + _video_frames[frame_index_upper] * t;
+	constexpr auto w = static_cast<int32_t>(config::eye_frame_width);
+	constexpr auto h = static_cast<int32_t>(config::eye_frame_height);
     if (display_state.mode == DisplayMode::STEREO) {
-        cv::resize(raw_frame, _eye_frame, cv::Size2i{config::eye_frame_width, config::eye_frame_height});
-        _eye_frame.copyTo(_display_frame(cv::Rect{0, 0, config::eye_frame_width, config::eye_frame_height}));
-        _eye_frame.copyTo(_display_frame(cv::Rect{config::eye_frame_width, 0, config::eye_frame_width, config::eye_frame_height}));
+        cv::resize(raw_frame, _eye_frame, cv::Size2i{w, h});
+        _eye_frame.copyTo(_display_frame(cv::Rect{0, 0, w, h}));
+        _eye_frame.copyTo(_display_frame(cv::Rect{w, 0, w, h}));
     } else {
-        cv::resize(raw_frame, _display_frame, cv::Size2i{config::eye_frame_width * 2ul, config::eye_frame_height});
+        cv::resize(raw_frame, _display_frame, cv::Size2i{w * 2, h});
     }
     std::memmove(_frame_buffer.data(), _display_frame.data, _frame_buffer.size());
 }
@@ -65,7 +67,7 @@ FrameRender::FrameRender()
         _video_frames.emplace_back();
         camera.retrieve(_video_frames.back());
         std::cout << "Loaded frame #" << _video_frames.size() << std::endl;
-        if (_video_frames.size() >= 1500ul) {
+        if (_video_frames.size() >= 500ul) {
             break;
         }
     }
