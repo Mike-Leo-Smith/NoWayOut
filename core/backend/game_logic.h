@@ -64,7 +64,8 @@ public:
     
     template<typename ...Args>
     [[nodiscard]] static std::unique_ptr<GameLogic> create(Args &&...args) noexcept {
-		init();
-        return std::make_unique<GameLogic>(std::forward<Args>(args)...);
+        auto instance = std::make_unique<GameLogic>(std::forward<Args>(args)...);
+        instance->init();
+        return instance;
     }
 };
