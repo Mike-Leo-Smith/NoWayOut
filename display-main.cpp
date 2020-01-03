@@ -14,7 +14,6 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, false);
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
@@ -30,9 +29,15 @@ int main() {
     auto display = Display::create();
     display->initialize();
     
+    bool is_stereo_display = true;
+    
     while (!glfwWindowShouldClose(window)) {
         
         glfwPollEvents();
+        
+        if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+            is_stereo_display = !is_stereo_display;
+        }
         
         auto frame_width = 0;
         auto frame_height = 0;
@@ -40,7 +45,7 @@ int main() {
         
         DisplayState display_state{};
         display_state.time = static_cast<float>(glfwGetTime());
-        display_state.mode = DisplayMode::STEREO;
+        display_state.mode = is_stereo_display ? DisplayMode::STEREO : DisplayMode::CENTER;
         display->draw(display_state, frame_width, frame_height);
         
         glfwSwapBuffers(window);

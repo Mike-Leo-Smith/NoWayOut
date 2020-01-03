@@ -53,8 +53,8 @@ include_directories(.)
 add_subdirectory(core)
 link_libraries(NoWayOutCore)
 
-add_executable(Backend-Executable backend.cpp)
+add_executable(Backend-Executable backend-main.cpp)
 
 add_subdirectory(display)
-add_executable(Display-Executable display.cpp)
+add_executable(Display-Executable display-main.cpp)
 target_link_libraries(Display-Executable NoWayOutDisplay)
