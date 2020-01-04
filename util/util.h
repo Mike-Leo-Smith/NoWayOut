@@ -31,9 +31,9 @@ private:
     constexpr RAII(T value, std::function<void(T &)> del) noexcept : _value{std::move(value)}, _delete{std::move(del)} {}
 
 public:
-    RAII(RAII &&) = default;
+    RAII(RAII &&) noexcept = default;
     RAII(const RAII &) = delete;
-    RAII &operator=(RAII &&) = default;
+    RAII &operator=(RAII &&) noexcept = default;
     RAII &operator=(const RAII &) = delete;
     
     ~RAII() noexcept { _delete(_value); }

@@ -53,6 +53,8 @@ FrameRender::FrameRender()
     
     gladLoadGL();
     _framebuffer = Framebuffer::create();
+    _shader = Shader::create(util::read_text_file("data/shaders/ggx.vert"), util::read_text_file("data/shaders/ggx.frag"));
+    _geometry = Geometry::create("data/meshes/cube.obj");
 }
 
 void FrameRender::_render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix) {

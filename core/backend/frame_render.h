@@ -9,6 +9,8 @@
 #include <glm/glm.hpp>
 
 #include <core/graphics/framebuffer.h>
+#include <core/graphics/shader.h>
+#include <core/graphics/geometry.h>
 
 #include <opencv2/opencv.hpp>
 #include <GLFW/glfw3.h>
@@ -23,6 +25,8 @@ class FrameRender {
 private:
     std::vector<uint8_t> _pixel_buffer;
     std::unique_ptr<Framebuffer> _framebuffer;
+    std::unique_ptr<Shader> _shader;
+    std::unique_ptr<Geometry> _geometry;
     GLFWwindow *_window{nullptr};
     float _start_time{0.0f};
 
