@@ -21,10 +21,10 @@ void GameLogic::init() {
 	btRigidBody* floorRigidBody = new btRigidBody(floorRigidBodyCI);
 	world->addRigidBody(floorRigidBody);
 
-	btCollisionShape* hand_foot = new btConeShape(0.05, 0.2);
-	btCollisionShape* arm_leg = new btCylinderShape(btVector3(0.05, 0.4, 0.05));
-	btCollisionShape* body = new btCylinderShape(btVector3(0.4, 0.8, 0.4));
-	btCollisionShape* head = new btSphereShape(0.25);
+	btCollisionShape* hand_foot = new btConeShape(0.05f, 0.2f);
+	btCollisionShape* arm_leg = new btCylinderShape(btVector3(0.05f, 0.4f, 0.05f));
+	btCollisionShape* body = new btCylinderShape(btVector3(0.4f, 0.8f, 0.4f));
+	btCollisionShape* head = new btSphereShape(0.25f);
 
 	for(int i = 0; i < 14; i++)
 	{

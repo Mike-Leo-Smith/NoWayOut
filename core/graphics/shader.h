@@ -10,7 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-class Shader {
+class Shader : util::Noncopyable {
 
 public:
     struct UniformProxy {

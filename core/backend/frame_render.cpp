@@ -7,7 +7,7 @@
 
 void FrameRender::update(const GameState &game_state, const DisplayState &display_state) {
     
-    _framebuffer->with([&] {
+    _framebuffer->with([&](auto &framebuffer) {
         glEnable(GL_DEPTH_TEST);
         glViewport(0, 0, config::eye_frame_width * 2ul, config::eye_frame_height);
         glScissor(0, 0, config::eye_frame_width * 2ul, config::eye_frame_height);

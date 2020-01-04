@@ -10,7 +10,9 @@
 
 #include <glad/glad.h>
 
-class Framebuffer {
+#include <util/util.h>
+
+class Framebuffer : util::Noncopyable {
 private:
     uint32_t _fbo_handle;
     uint32_t _texture_handle;
@@ -23,6 +25,6 @@ public:
     template<typename Func>
     void with(Func &&func) {
         glBindFramebuffer(GL_FRAMEBUFFER, _fbo_handle);
-        func();
+        func(*this);
     }
 };
