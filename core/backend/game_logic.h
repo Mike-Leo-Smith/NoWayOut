@@ -12,8 +12,8 @@
 struct unit
 {
 	enum unit_type_t {ORGAN, ENEMY, BULLET};
-	virtual unit_type_t getType() = 0;
-	btCollisionObject* obj;
+	[[nodiscard]] virtual unit_type_t getType() const = 0;
+	btCollisionObject* obj{nullptr};
 };
 
 enum organ_type_t { PLAYER_ARM, PLAYER_LEG, PLAYER_HAND, PLAYER_FOOT, PLAYER_BODY, PLAYER_HEAD };
@@ -21,7 +21,7 @@ enum organ_type_t { PLAYER_ARM, PLAYER_LEG, PLAYER_HAND, PLAYER_FOOT, PLAYER_BOD
 struct organ : unit
 {
 	organ_type_t organ_type;
-	unit_type_t getType() override { return ORGAN; }
+	[[nodiscard]] unit_type_t getType() const override { return ORGAN; }
 	organ(organ_type_t t) : organ_type(t) {}
 };
 
@@ -30,7 +30,7 @@ struct enemy : unit
 	int enemyId;
 	int health;
 	int maxHealth;
-	unit_type_t getType() override { return ENEMY; }
+	[[nodiscard]] unit_type_t getType() const override { return ENEMY; }
 	enemy(int i, int h) : enemyId(i), health(h), maxHealth(h) {}
 };
 
@@ -38,7 +38,7 @@ struct bullet : unit
 {
 	int damage;
 	bool isPlayers;
-	unit_type_t getType() override { return BULLET; }
+	[[nodiscard]] unit_type_t getType() const override { return BULLET; }
 	bullet(int d, bool p) : damage(d), isPlayers(p) {}
 };
 
@@ -53,7 +53,8 @@ class GameLogic {
 
 private:
     GameState _state;
-	btDiscreteDynamicsWorld* world;
+	btDiscreteDynamicsWorld* world{};
+	
 public:
 	void init();
 	void generateEnemy();

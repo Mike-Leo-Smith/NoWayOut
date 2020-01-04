@@ -76,6 +76,12 @@ add_subdirectory(thirdparty/bullet)
 include_directories(thirdparty/bullet/src)
 link_libraries(LinearMath BulletDynamics BulletCollision)
 
+add_subdirectory(thirdparty/tinyobjloader)
+link_libraries(tinyobjloader)
+
+add_subdirectory(thirdparty/stb_image)
+link_libraries(stb_image)
+
 include_directories(.)
 add_subdirectory(core)
 link_libraries(NoWayOutCore)

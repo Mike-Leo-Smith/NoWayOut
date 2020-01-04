@@ -18,7 +18,7 @@ int main() {
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
 #endif
-
+    
     constexpr auto window_width = static_cast<int32_t>(config::eye_frame_width * 2);
     constexpr auto window_height = static_cast<int32_t>(config::eye_frame_height);
     auto window = glfwCreateWindow(window_width, window_height, "NoWayOut - Display", nullptr, nullptr);
@@ -45,10 +45,22 @@ int main() {
         
         DisplayState display_state{};
         display_state.time = static_cast<float>(glfwGetTime());
-        display_state.mode = is_stereo_display ? DisplayMode::STEREO : DisplayMode::CENTER;
+        auto view_matrix = glm::lookAt(glm::vec3{}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec3{0.0f, 1.0f, 0.0f});
+        if (is_stereo_display) {
+            display_state.mode = DisplayMode::STEREO;
+            display_state.view_matrix[0] = glm::translate(glm::mat4{1.0f}, glm::vec3{0.03f, 0.0f, 0.0f}) * view_matrix;
+            display_state.view_matrix[1] = glm::translate(glm::mat4{1.0f}, glm::vec3{-0.03f, 0.0f, 0.0f}) * view_matrix;
+            auto projection_matrix = glm::perspective(glm::radians(60.0f), 1.0f, 0.1f, 25.0f);
+            display_state.projection_matrix[0] = projection_matrix;
+            display_state.projection_matrix[1] = projection_matrix;
+        } else {
+            display_state.mode = DisplayMode::CENTER;
+            display_state.view_matrix[0] = view_matrix;
+            display_state.projection_matrix[0] = glm::perspective(glm::radians(60.0f), 2.0f, 0.1f, 25.0f);
+        }
         display->draw(display_state, frame_width, frame_height);
         
         glfwSwapBuffers(window);
     }
-
+    
 }

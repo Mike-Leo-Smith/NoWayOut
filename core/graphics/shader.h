@@ -7,6 +7,8 @@
 
 #include <memory>
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 class Shader {
 
@@ -32,6 +34,16 @@ public:
         
         UniformProxy &operator=(float value) noexcept {
             glUniform1f(location, value);
+            return *this;
+        }
+        
+        UniformProxy &operator=(glm::vec3 v) noexcept {
+            glUniform3f(location, v.x, v.y, v.z);
+            return *this;
+        }
+        
+        UniformProxy &operator=(glm::mat4 m) noexcept {
+            glUniformMatrix4fv(location, 1, false, glm::value_ptr(m));
             return *this;
         }
     };

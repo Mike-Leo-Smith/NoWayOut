@@ -8,7 +8,10 @@
 #include <string_view>
 #include <glm/glm.hpp>
 
+#include <core/graphics/framebuffer.h>
+
 #include <opencv2/opencv.hpp>
+#include <GLFW/glfw3.h>
 
 #include <config/config.h>
 #include <display/display_state.h>
@@ -18,15 +21,17 @@ struct GameState;
 class FrameRender {
 
 private:
-    std::vector<uint8_t> _frame_buffer;
-    std::vector<cv::Mat> _video_frames;
-    cv::Mat _eye_frame;
-    cv::Mat _display_frame;
+    std::vector<uint8_t> _pixel_buffer;
+    std::unique_ptr<Framebuffer> _framebuffer;
+    GLFWwindow *_window{nullptr};
     float _start_time{0.0f};
+
+private:
+    void _render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix);
 
 public:
     FrameRender();
-    [[nodiscard]] const std::vector<uint8_t> &frame() const noexcept { return _frame_buffer; }
+    [[nodiscard]] const std::vector<uint8_t> &frame() const noexcept { return _pixel_buffer; }
     void update(const GameState &game_state, const DisplayState &display_state);
     
     template<typename ...Args>
