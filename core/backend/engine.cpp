@@ -12,6 +12,8 @@ void Engine::run() noexcept {
         abort();
     }
     
+    std::cout << "Engine started!" << std::endl;
+    
     _frame_count = 0ul;
     _last_time_point = std::chrono::high_resolution_clock::now();
     while (!_game_logic->should_exit()) {

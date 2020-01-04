@@ -52,4 +52,5 @@ Network::Network(const std::string &address) {
     auto ip_address = asio::ip::address_v4::from_string(address);
     _pose_socket->connect({ip_address, config::pose_socket_port});
     _frame_socket->connect({ip_address, config::frame_socket_port});
+    std::cout << "Connected!" << std::endl;
 }
