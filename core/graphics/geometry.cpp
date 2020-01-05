@@ -31,13 +31,16 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         
         if (file_name.empty()) { return 0u; }
         
-        auto file_path = directory / file_name;
+        auto file_path = (directory / file_name).string();
         if (auto iter = loaded_textures.find(file_path); iter != loaded_textures.end()) { return iter->second; }
         
         auto width = 0;
         auto height = 0;
         auto num_channels = 0;
         auto data = util::guard(stbi_loadf(file_path.c_str(), &width, &height, &num_channels, 4), [](float *p) { stbi_image_free(p); });
+        if (*data == nullptr) {
+            std::cerr << "Failed to load texture: " << file_path << std::endl;
+        }
         auto texture_handle = 0u;
         glGenTextures(1, &texture_handle);
         glBindTexture(GL_TEXTURE_2D, texture_handle);
@@ -49,7 +52,7 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, *data);
         glGenerateMipmap(GL_TEXTURE_2D);
         
-        loaded_textures.emplace(file_path, texture_handle);
+        loaded_textures.emplace(std::move(file_path), texture_handle);
         return texture_handle;
     };
     
