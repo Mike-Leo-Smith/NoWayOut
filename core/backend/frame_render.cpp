@@ -9,6 +9,7 @@ void FrameRender::update(const GameState &game_state, const DisplayState &displa
     
     _framebuffer->with([&](auto &framebuffer) {
         glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
         glViewport(0, 0, config::eye_frame_width * 2ul, config::eye_frame_height);
         glScissor(0, 0, config::eye_frame_width * 2ul, config::eye_frame_height);
         glClearColor(1.0f, 0.5f, 0.25f, 1.0f);
@@ -54,7 +55,7 @@ FrameRender::FrameRender()
     gladLoadGL();
     _framebuffer = Framebuffer::create();
     _shader = Shader::create(util::read_text_file("data/shaders/ggx.vert"), util::read_text_file("data/shaders/ggx.frag"));
-    _geometry = Geometry::create("data/meshes/cube/cube.obj", glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, 0.0f, -3.0f}) * glm::rotate(glm::mat4{1.0f}, glm::radians(30.0f), glm::vec3{1.0f, 1.0f, 1.0f}));
+    _geometry = Geometry::create("data/meshes/cube/cube.obj", glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, 0.0f, -3.0f}) * glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 1.0f, 1.0f}));
 }
 
 void FrameRender::_render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix) {

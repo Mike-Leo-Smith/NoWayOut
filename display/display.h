@@ -32,14 +32,14 @@ private:
     std::unique_ptr<Shader> _display_shader;
     std::vector<uint8_t> _frame_buffer;
     cv::Mat _frame;
-    uint32_t _vertex_buffer_handle;
-    uint32_t _vertex_array_handle;
-    uint32_t _texture_handle;
+    uint32_t _vertex_buffer_handle{};
+    uint32_t _vertex_array_handle{};
+    uint32_t _texture_handle{};
     std::string _ip_address;
     std::mutex _mutex;
     std::thread _decode_thread;
     std::condition_variable _cv;
-    DisplayState _head_pose;
+    DisplayState _head_pose{};
     bool _decode_in_progress{false};
     
     [[nodiscard]] static std::string _get_ip_address() noexcept;

@@ -20,9 +20,8 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
     
     tinyobj::ObjReaderConfig loader_config;
     loader_config.triangulate = true;
-    loader_config.vertex_color = false;
     tinyobj::ObjReader loader;
-    loader.ParseFromFile(path, loader_config);
+    loader.ParseFromFile(std::filesystem::absolute(path).string(), loader_config);
     
     auto directory = path.parent_path();
     std::unordered_map<std::string, uint32_t> loaded_textures;
@@ -77,19 +76,18 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
     std::vector<std::vector<glm::vec2>> tex_coord_buffers(materials.size());
     for (auto &&shape : loader.GetShapes()) {
         std::cout << "Info: loading mesh '" << shape.name << "'..." << std::endl;
-        auto offset = 0ul;
         for (auto face = 0ul; face < shape.mesh.num_face_vertices.size(); face++) {
             auto material_id = shape.mesh.material_ids[face];
-            auto i0 = shape.mesh.indices[offset];
-            auto i1 = shape.mesh.indices[offset + 1ul];
-            auto i2 = shape.mesh.indices[offset + 2ul];
-            position_buffers[material_id].emplace_back(positions[i0.vertex_index * 3ul], positions[i0.vertex_index * 3ul + 1ul], positions[i0.vertex_index + 3ul + 2ul]);
-            position_buffers[material_id].emplace_back(positions[i1.vertex_index * 3ul], positions[i1.vertex_index * 3ul + 1ul], positions[i1.vertex_index + 3ul + 2ul]);
-            position_buffers[material_id].emplace_back(positions[i2.vertex_index * 3ul], positions[i2.vertex_index * 3ul + 1ul], positions[i2.vertex_index + 3ul + 2ul]);
-            normal_buffers[material_id].emplace_back(normals[i0.normal_index * 3ul], normals[i0.normal_index * 3ul + 1ul], normals[i0.normal_index + 3ul + 2ul]);
-            normal_buffers[material_id].emplace_back(normals[i1.normal_index * 3ul], normals[i1.normal_index * 3ul + 1ul], normals[i1.normal_index + 3ul + 2ul]);
-            normal_buffers[material_id].emplace_back(normals[i2.normal_index * 3ul], normals[i2.normal_index * 3ul + 1ul], normals[i2.normal_index + 3ul + 2ul]);
-            if (i0.texcoord_index > 0 && i1.texcoord_index > 0 && i2.texcoord_index > 0) {
+            auto i0 = shape.mesh.indices[face * 3ul];
+            auto i1 = shape.mesh.indices[face * 3ul + 1ul];
+            auto i2 = shape.mesh.indices[face * 3ul + 2ul];
+            position_buffers[material_id].emplace_back(positions[i0.vertex_index * 3ul], positions[i0.vertex_index * 3ul + 1ul], positions[i0.vertex_index * 3ul + 2ul]);
+            position_buffers[material_id].emplace_back(positions[i1.vertex_index * 3ul], positions[i1.vertex_index * 3ul + 1ul], positions[i1.vertex_index * 3ul + 2ul]);
+            position_buffers[material_id].emplace_back(positions[i2.vertex_index * 3ul], positions[i2.vertex_index * 3ul + 1ul], positions[i2.vertex_index * 3ul + 2ul]);
+            normal_buffers[material_id].emplace_back(normals[i0.normal_index * 3ul], normals[i0.normal_index * 3ul + 1ul], normals[i0.normal_index * 3ul + 2ul]);
+            normal_buffers[material_id].emplace_back(normals[i1.normal_index * 3ul], normals[i1.normal_index * 3ul + 1ul], normals[i1.normal_index * 3ul + 2ul]);
+            normal_buffers[material_id].emplace_back(normals[i2.normal_index * 3ul], normals[i2.normal_index * 3ul + 1ul], normals[i2.normal_index * 3ul + 2ul]);
+            if (i0.texcoord_index >= 0 && i1.texcoord_index >= 0 && i2.texcoord_index >= 0) {
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i0.texcoord_index * 2ul], tex_coords[i0.texcoord_index * 2ul + 1ul]);
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i1.texcoord_index * 2ul], tex_coords[i1.texcoord_index * 2ul + 1ul]);
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i2.texcoord_index * 2ul], tex_coords[i2.texcoord_index * 2ul + 1ul]);
@@ -98,7 +96,6 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
                 tex_coord_buffers[material_id].emplace_back(0.0f, 0.0f);
                 tex_coord_buffers[material_id].emplace_back(0.0f, 0.0f);
             }
-            offset += 3ul;
         }
     }
     
