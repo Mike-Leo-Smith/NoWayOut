@@ -45,7 +45,7 @@ int main() {
         
         DisplayState display_state{};
         display_state.time = static_cast<float>(glfwGetTime());
-        auto view_matrix = glm::lookAt(glm::vec3{}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec3{0.0f, 1.0f, 0.0f});
+        auto view_matrix = glm::lookAt(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec3{0.0f, 1.0f, 0.0f});
         if (is_stereo_display) {
             display_state.mode = DisplayMode::STEREO;
             display_state.view_matrix[0] = glm::translate(glm::mat4{1.0f}, glm::vec3{0.03f, 0.0f, 0.0f}) * view_matrix;

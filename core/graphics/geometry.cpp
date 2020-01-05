@@ -31,15 +31,17 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         
         if (file_name.empty()) { return 0u; }
         
-        auto file_path = (directory / file_name).string();
+        auto file_path = std::filesystem::absolute(directory / file_name).string();
         if (auto iter = loaded_textures.find(file_path); iter != loaded_textures.end()) { return iter->second; }
         
         auto width = 0;
         auto height = 0;
         auto num_channels = 0;
-        auto data = util::guard(stbi_loadf(file_path.c_str(), &width, &height, &num_channels, 4), [](float *p) { stbi_image_free(p); });
+        std::cout << "Loading texture: " << file_path << std::endl;
+        auto data = util::guard(stbi_load(file_path.c_str(), &width, &height, &num_channels, 4), [](uint8_t *p) { stbi_image_free(p); });
         if (*data == nullptr) {
             std::cerr << "Failed to load texture: " << file_path << std::endl;
+            abort();
         }
         auto texture_handle = 0u;
         glGenTextures(1, &texture_handle);
@@ -76,9 +78,8 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
     for (auto &&shape : loader.GetShapes()) {
         std::cout << "Info: loading mesh '" << shape.name << "'..." << std::endl;
         auto offset = 0ul;
-        for (auto i = 0ul; i < shape.mesh.num_face_vertices.size(); i++) {
-            auto num_face_vertices = shape.mesh.num_face_vertices[i];
-            auto material_id = shape.mesh.material_ids[i];
+        for (auto face = 0ul; face < shape.mesh.num_face_vertices.size(); face++) {
+            auto material_id = shape.mesh.material_ids[face];
             auto i0 = shape.mesh.indices[offset];
             auto i1 = shape.mesh.indices[offset + 1ul];
             auto i2 = shape.mesh.indices[offset + 2ul];
@@ -97,7 +98,7 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
                 tex_coord_buffers[material_id].emplace_back(0.0f, 0.0f);
                 tex_coord_buffers[material_id].emplace_back(0.0f, 0.0f);
             }
-            offset += num_face_vertices;
+            offset += 3ul;
         }
     }
     
@@ -131,7 +132,7 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(glm::vec3), nullptr);
         
         // tex coord buffer
-        if (std::any_of(tex_coord_buffer.cbegin(), tex_coord_buffer.cend(), [](auto t) { return t.x != 0.0f && t.y != 0.0f; })) {
+        if (std::any_of(tex_coord_buffer.cbegin(), tex_coord_buffer.cend(), [](auto t) { return t.x != 0.0f || t.y != 0.0f; })) {
             glGenBuffers(1, &mesh.texture_coord_vbo_handle);
             glBindBuffer(GL_ARRAY_BUFFER, mesh.texture_coord_vbo_handle);
             glBufferData(GL_ARRAY_BUFFER, tex_coord_buffer.size() * sizeof(glm::vec2), tex_coord_buffer.data(), GL_STATIC_DRAW);
@@ -148,8 +149,12 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
 void Geometry::draw(Shader &shader) {
     shader["transform"] = _transform;
     for (auto &&mesh : _meshes) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, mesh.material.diffuse_texture_handle);
         shader["diffuse_texture"] = 0;
         shader["has_diffuse_texture"] = mesh.material.diffuse_texture_handle;
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, mesh.material.specular_texture_handle);
         shader["specular_texture"] = 1;
         shader["has_specular_texture"] = mesh.material.specular_texture_handle;
         shader["diffuse_color"] = mesh.material.diffuse_color;

@@ -54,11 +54,6 @@ private:
     explicit Shader(uint32_t id) noexcept : _id{id} {};
 
 public:
-    Shader(Shader &&) = delete;
-    Shader(const Shader &) = delete;
-    Shader &operator=(Shader &&) = delete;
-    Shader &operator=(const Shader &) = delete;
-    
     ~Shader() noexcept { glDeleteProgram(_id); }
     
     [[nodiscard]] static std::unique_ptr<Shader> create(const std::string &vs_source, const std::string &fs_source);
