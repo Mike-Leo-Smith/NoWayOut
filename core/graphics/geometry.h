@@ -48,4 +48,5 @@ private:
 public:
     [[nodiscard]] static std::unique_ptr<Geometry> create(const std::filesystem::path &path, glm::mat4 transform = glm::mat4{1.0f}) noexcept;
     void draw(Shader &shader);
+    void set_transform(glm::mat4 transform) noexcept { _transform = transform; }
 };
