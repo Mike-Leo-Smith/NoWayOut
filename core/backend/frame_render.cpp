@@ -55,13 +55,23 @@ FrameRender::FrameRender()
     gladLoadGL();
     _framebuffer = Framebuffer::create();
     _shader = Shader::create(util::read_text_file("data/shaders/ggx.vert"), util::read_text_file("data/shaders/ggx.frag"));
-    _geometry = Geometry::create("data/meshes/cube/cube.obj", glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, 0.0f, -3.0f}) * glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 1.0f, 1.0f}));
+    _geometry = Geometry::create("data/meshes/primitives/cube.obj", glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, 0.0f, -3.0f}) * glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 1.0f, 1.0f}));
 }
 
 void FrameRender::_render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix) {
     _shader->with([&](Shader &shader) {
         shader["view_matrix"] = view_matrix;
         shader["projection_matrix"] = projection_matrix;
-        _geometry->draw(shader);
+        for (auto &&organ : game_state.organs) {
+            if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
+                organ.geometry->draw(shader);
+            }
+        }
+        for (auto &&enemy : game_state.enemies) {
+            enemy->geometry->draw(shader);
+        }
+        for (auto &&bullet : game_state.bullets) {
+            bullet->geometry->draw(shader);
+        }
     });
 }

@@ -1,0 +1,25 @@
+# File produced by Open Asset Import Library (http://www.assimp.sf.net)
+# (assimp v4.1.0)
+
+newmtl DefaultMaterial
+Kd 0.6000000238418579 0.6000000238418579 0.6000000238418579
+Ka 0 0 0
+Ks 0 0 0
+Ke 0 0 0
+Tf 1 1 1
+d 1
+Ni 1
+illum 1
+
+newmtl cube_mtl
+Kd 0.5120000243186951 0.5120000243186951 0.5120000243186951
+Ka 0 0 0
+Ks 0.2000000029802322 0.2000000029802322 0.2000000029802322
+Ke 0 0 0
+Tf 1 1 1
+d 1
+Ni 1
+Ns 128
+illum 2
+map_Kd bricks.jpg
+

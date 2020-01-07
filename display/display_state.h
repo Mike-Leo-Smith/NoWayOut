@@ -23,6 +23,10 @@ struct DisplayState {
     glm::mat4 view_matrix[2];
     glm::mat4 projection_matrix[2];
     
+    [[nodiscard]] glm::vec3 front() const noexcept {
+        return glm::normalize(glm::transpose(glm::mat3{view_matrix[0]}) * glm::vec3{0.0f, 0.0f, -1.0f});
+    }
+    
     [[nodiscard]] static DisplayState from_json_string(std::string_view json_string) {
         
         DisplayState state{};

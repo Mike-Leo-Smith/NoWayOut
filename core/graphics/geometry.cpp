@@ -86,12 +86,14 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
             auto i0 = shape.mesh.indices[face * 3ul];
             auto i1 = shape.mesh.indices[face * 3ul + 1ul];
             auto i2 = shape.mesh.indices[face * 3ul + 2ul];
-            normal_buffer[i0.normal_index] = glm::normalize(normal_matrix * reinterpret_cast<const glm::vec3 *>(loader.GetAttrib().normals.data())[i0.normal_index]);
-            normal_buffer[i1.normal_index] = glm::normalize(normal_matrix * reinterpret_cast<const glm::vec3 *>(loader.GetAttrib().normals.data())[i1.normal_index]);
-            normal_buffer[i2.normal_index] = glm::normalize(normal_matrix * reinterpret_cast<const glm::vec3 *>(loader.GetAttrib().normals.data())[i2.normal_index]);
-            texture_coord_buffer[i0.texcoord_index] = reinterpret_cast<const glm::vec2 *>(loader.GetAttrib().texcoords.data())[i0.normal_index];
-            texture_coord_buffer[i1.texcoord_index] = reinterpret_cast<const glm::vec2 *>(loader.GetAttrib().texcoords.data())[i1.normal_index];
-            texture_coord_buffer[i2.texcoord_index] = reinterpret_cast<const glm::vec2 *>(loader.GetAttrib().texcoords.data())[i2.normal_index];
+            normal_buffer[i0.vertex_index] = glm::normalize(normal_matrix * reinterpret_cast<const glm::vec3 *>(loader.GetAttrib().normals.data())[i0.normal_index]);
+            normal_buffer[i1.vertex_index] = glm::normalize(normal_matrix * reinterpret_cast<const glm::vec3 *>(loader.GetAttrib().normals.data())[i1.normal_index]);
+            normal_buffer[i2.vertex_index] = glm::normalize(normal_matrix * reinterpret_cast<const glm::vec3 *>(loader.GetAttrib().normals.data())[i2.normal_index]);
+            if (i0.texcoord_index >= 0 && i1.texcoord_index >= 0 && i2.texcoord_index >= 0) {
+                texture_coord_buffer[i0.vertex_index] = reinterpret_cast<const glm::vec2 *>(loader.GetAttrib().texcoords.data())[i0.texcoord_index];
+                texture_coord_buffer[i1.vertex_index] = reinterpret_cast<const glm::vec2 *>(loader.GetAttrib().texcoords.data())[i1.texcoord_index];
+                texture_coord_buffer[i2.vertex_index] = reinterpret_cast<const glm::vec2 *>(loader.GetAttrib().texcoords.data())[i2.texcoord_index];
+            }
             index_buffers[material_id].emplace_back(i0.vertex_index);
             index_buffers[material_id].emplace_back(i1.vertex_index);
             index_buffers[material_id].emplace_back(i2.vertex_index);
