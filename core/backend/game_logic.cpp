@@ -81,10 +81,10 @@ void GameLogic::init() {
 void GameLogic::generateEnemy()
 {
 	int enemyId = std::rand() % enemyBook.size();
-	auto enemyInfo = enemyBook[enemyId];
+	auto enemyInfo = &enemyBook[enemyId];
 
 	const float distance = 10;
-	bool flying = std::rand() % 2;
+	bool flying = enemyInfo->isFlying;
 	std::uniform_real_distribution<> values{0.0, 3.1415926 * 2};
 	std::random_device rd;
 	std::default_random_engine rng{rd()};
@@ -103,7 +103,7 @@ void GameLogic::generateEnemy()
 	//enemyRigidBody->setCollisionFlags(enemyRigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 	//enemyRigidBody->setActivationState(DISABLE_DEACTIVATION);
 
-	_state.enemies.push_back(new enemy(100, flying, 2));
+	_state.enemies.push_back(new enemy(enemyInfo->geometry.get(), enemyRigidBody, enemyInfo->maxHealth, flying, enemyInfo->speed));
 
 	if(flying)
 	{
@@ -113,7 +113,6 @@ void GameLogic::generateEnemy()
 
 	enemyRigidBody->setUserPointer(_state.enemies.back());
 	world->addRigidBody(enemyRigidBody);
-	_state.enemies.back()->obj = enemyRigidBody;
 }
 
 void GameLogic::organCollideEnemy(organ* organA, enemy* enemyB, float impulse)
