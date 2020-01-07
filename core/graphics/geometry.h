@@ -46,7 +46,7 @@ private:
     uint32_t _normal_vbo_handle;
     uint32_t _texture_coord_vbo_handle;
     std::vector<glm::vec3> _position_buffer;
-    std::vector<int32_t> _index_buffer;
+    std::vector<uint32_t> _index_buffer;
     std::vector<Mesh> _meshes;
     glm::mat4 _transform{1.0f};
 
@@ -56,4 +56,7 @@ public:
            glm::mat4 initial_transform = glm::mat4{1.0f}) noexcept;
     void draw(Shader &shader);
     void set_transform(glm::mat4 transform) noexcept { _transform = transform; }
+    [[nodiscard]] glm::mat4 transform() const noexcept { return _transform; }
+    [[nodiscard]] const std::vector<glm::vec3> &position_buffer1() const noexcept { return _position_buffer; }
+    [[nodiscard]] const std::vector<uint32_t> &index_buffer1() const noexcept { return _index_buffer; }
 };

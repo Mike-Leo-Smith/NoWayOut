@@ -23,6 +23,7 @@ struct organ : unit
 {
 	organ_type_t organ_type;
 	[[nodiscard]] unit_type_t getType() const override { return ORGAN; }
+	organ() noexcept = default;
 	organ(Geometry* g, btRigidBody* o, organ_type_t t) : organ_type(t)
 	{ 
 		geometry = g;

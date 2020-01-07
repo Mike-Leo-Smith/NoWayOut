@@ -130,7 +130,7 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         mesh.vertex_count = index_buffer.size();
         glGenBuffers(1, &mesh.ebo_handle);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo_handle);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer.size() * sizeof(int32_t), index_buffer.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer.size() * sizeof(uint32_t), index_buffer.data(), GL_STATIC_DRAW);
     }
     
     return geometry;
