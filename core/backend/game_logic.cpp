@@ -4,6 +4,7 @@
 
 #include "game_logic.h"
 #include <random>
+#include <algorithm>
 
 void GameLogic::init() {
 	_state.frame = 0;
@@ -21,29 +22,43 @@ void GameLogic::init() {
 	btRigidBody* floorRigidBody = new btRigidBody(floorRigidBodyCI);
 	world->addRigidBody(floorRigidBody);
 
-	btCollisionShape* hand_foot = new btConeShape(0.05f, 0.2f);
-	btCollisionShape* arm_leg = new btCylinderShape(btVector3(0.05f, 0.4f, 0.05f));
-	btCollisionShape* body = new btCylinderShape(btVector3(0.4f, 0.8f, 0.4f));
-	btCollisionShape* head = new btSphereShape(0.25f);
+	btCollisionShape* hand_foot_shape = new btConeShape(0.05f, 0.2f);
+	btCollisionShape* arm_leg_shape = new btCylinderShape(btVector3(0.05f, 0.4f, 0.05f));
+	btCollisionShape* body_shape = new btCylinderShape(btVector3(0.4f, 0.8f, 0.4f));
+	btCollisionShape* head_shape = new btSphereShape(0.25f);
+
+	organGeometries.reserve(6);
+	organGeometries[PLAYER_ARM] = Geometry::create("arm.obj");
+	organGeometries[PLAYER_LEG] = Geometry::create("leg.obj");
+	organGeometries[PLAYER_HAND] = Geometry::create("hand.obj");
+	organGeometries[PLAYER_FOOT] = Geometry::create("foot.obj");
+	organGeometries[PLAYER_BODY] = Geometry::create("body.obj");
+	organGeometries[PLAYER_HEAD] = Geometry::create("head.obj");
+
+	enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("flying_horse.obj")));
+	enemyBook.push_back(enemy_book_elem(1, 100, 1.5, true, Geometry::create("airplane.obj")));
+
+	organ_type_t organ_types[14]{PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_HAND, PLAYER_HAND, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY, PLAYER_HEAD};
 
 	for(int i = 0; i < 14; i++)
 	{
 		btCollisionShape* shape;
-		switch(_state.organs[i].organ_type)
+		organ_type_t organ_type = organ_types[i];
+		switch(organ_type)
 		{
 		case PLAYER_ARM:
 		case PLAYER_LEG:
-			shape = arm_leg;
+			shape = arm_leg_shape;
 			break;
 		case PLAYER_FOOT:
 		case PLAYER_HAND:
-			shape = hand_foot;
+			shape = hand_foot_shape;
 			break;
 		case PLAYER_BODY:
-			shape = body;
+			shape = body_shape;
 			break;
 		case PLAYER_HEAD:
-			shape = head;
+			shape = head_shape;
 			break;
 		}
 		btDefaultMotionState* organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
@@ -58,20 +73,24 @@ void GameLogic::init() {
 		organRigidBody->setUserPointer(&(_state.organs[i]));
 		world->addRigidBody(organRigidBody);
 
-		_state.organs[i].obj = organRigidBody;
+		_state.organs[i] = organ(organGeometries[organ_type].get(), organRigidBody, organ_type);
 	}
 
 }
 
 void GameLogic::generateEnemy()
 {
+	int enemyId = std::rand() % enemyBook.size();
+	auto enemyInfo = enemyBook[enemyId];
+
 	const float distance = 10;
+	bool flying = std::rand() % 2;
 	std::uniform_real_distribution<> values{0.0, 3.1415926 * 2};
 	std::random_device rd;
 	std::default_random_engine rng{rd()};
 	float theta = values(rng);
 	float x = distance * std::cosf(theta);
-	float y = 0; //todo
+	float y = flying ? 1.5 : 0;
 	float z = distance * std::sinf(theta);
 	
 	btCollisionShape* enemyShape = new btSphereShape(0.5);
@@ -81,14 +100,62 @@ void GameLogic::generateEnemy()
 	enemyShape->calculateLocalInertia(mass, inertia);
 	btRigidBody::btRigidBodyConstructionInfo enemyRigidBodyCI(mass, enemyMotionState, enemyShape, inertia);
 	btRigidBody* enemyRigidBody = new btRigidBody(enemyRigidBodyCI);
-	enemyRigidBody->setCollisionFlags(enemyRigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-	enemyRigidBody->setActivationState(DISABLE_DEACTIVATION);
+	//enemyRigidBody->setCollisionFlags(enemyRigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+	//enemyRigidBody->setActivationState(DISABLE_DEACTIVATION);
 
-	_state.enemies.push_back(new enemy(0, 100));
+	_state.enemies.push_back(new enemy(100, flying, 2));
+
+	if(flying)
+	{
+		enemyRigidBody->activate();
+		enemyRigidBody->applyCentralForce(btVector3(0, 10, 0));
+	}
 
 	enemyRigidBody->setUserPointer(_state.enemies.back());
 	world->addRigidBody(enemyRigidBody);
 	_state.enemies.back()->obj = enemyRigidBody;
+}
+
+void GameLogic::organCollideEnemy(organ* organA, enemy* enemyB, float impulse)
+{
+	enemyB->health -= impulse;
+	if(organA->organ_type == organ_type_t::PLAYER_BODY)
+		_state.playerHealth -= impulse;
+	else if(organA->organ_type == organ_type_t::PLAYER_HEAD)
+		_state.playerHealth -= impulse * 1.5;
+	else
+		_state.playerHealth -= impulse * 0.3;
+	
+	if(_state.playerHealth < 0) //todo
+		std::cout << "You are dead\n";
+}
+
+void GameLogic::enemyCollideBullet(enemy* enemyA, bullet* bulletB, float impulse)
+{
+	enemyA->health -= impulse;
+}
+
+void GameLogic::organCollideBullet(organ* organA, bullet* bulletB, float impulse)
+{
+	if(organA->organ_type == organ_type_t::PLAYER_BODY)
+		_state.playerHealth -= impulse;
+	else if(organA->organ_type == organ_type_t::PLAYER_HEAD)
+		_state.playerHealth -= impulse * 1.5;
+	else
+		_state.playerHealth -= impulse * 0.3;
+
+	if(_state.playerHealth < 0) //todo
+		std::cout << "You are dead\n";
+}
+
+void GameLogic::collide(unit* unitA, unit* unitB, float impulse)
+{
+	if(unitA->getType() == unit::unit_type_t::ORGAN && unitB->getType() == unit::unit_type_t::ENEMY)
+		organCollideEnemy((organ*)unitA, (enemy*)unitB, impulse);
+	else if(unitA->getType() == unit::unit_type_t::ENEMY && unitB->getType() == unit::unit_type_t::BULLET)
+		enemyCollideBullet((enemy*)unitA, (bullet*)unitB, impulse);
+	else if(unitA->getType() == unit::unit_type_t::ORGAN && unitB->getType() == unit::unit_type_t::BULLET)
+		organCollideBullet((organ*)unitA, (bullet*)unitB, impulse);
 }
 
 void GameLogic::update(const DisplayState &display_state, const GestureState &gesture_state) {
@@ -99,23 +166,54 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 
 	world->stepSimulation(1 / 60.f, 10); //todo: change fps
 
+	auto head_trans = _state.organs[13].obj->getWorldTransform();
+	auto head_origin = head_trans.getOrigin();
+	for(auto& e : _state.enemies)
+	{
+		auto enemy_trans = e->obj->getWorldTransform();
+		auto enemy_origin = enemy_trans.getOrigin();
+		auto diff_origin = head_origin - enemy_origin;
+		if(e->isFlying)
+		{
+			e->updateForce(diff_origin, e->speed);
+		}
+		else
+		{
+			if(diff_origin.length2() < 2 * 2)
+			{
+				e->updateForce(diff_origin, e->speed * 1.5);
+			}
+			else
+			{
+				diff_origin.setY(0);
+				e->updateForce(diff_origin, e->speed);
+			}
+		}
+	}
+
 	int numManifolds = world->getDispatcher()->getNumManifolds();
 	for(int i = 0; i < numManifolds; ++i)  // pairs
 	{
 		btPersistentManifold* contactManifold = world->getDispatcher()->getManifoldByIndexInternal(i);
 		const btCollisionObject* bA = static_cast<const btCollisionObject*>(contactManifold->getBody0());
 		const btCollisionObject* bB = static_cast<const btCollisionObject*>(contactManifold->getBody1());
+		unit* unitA = (unit*)(bA->getUserPointer());
+		unit* unitB = (unit*)(bB->getUserPointer());
+
+		if(unitA->getType() == unitB->getType())
+			continue;
+
+		if(unitA->getType() > unitB->getType())
+			std::swap(unitA, unitB);
+
 		int numContacts = contactManifold->getNumContacts();
 		for(int j = 0; j < numContacts; j++)
 		{
 			btManifoldPoint& pt = contactManifold->getContactPoint(j);
 			if(pt.getDistance() <= 0.f)
 			{
-				btVector3 posA = pt.getPositionWorldOnA();
-				btVector3 posB = pt.getPositionWorldOnB();
-				printf("%d A -> {%f, %f, %f}\n", i, posA.getX(), posA.getY(), posA.getZ());
-				printf("%d B -> {%f, %f, %f}\n", i, posB.getX(), posB.getY(), posB.getZ());
 				std::cout << pt.getAppliedImpulse() << std::endl;
+				collide(unitA, unitB, pt.getAppliedImpulse());
 			}
 		}
 	}
