@@ -67,7 +67,7 @@ int main() {
         } else {
             display_state.mode = DisplayMode::CENTER;
             display_state.view_matrix[0] = view_matrix;
-            display_state.projection_matrix[0] = glm::perspective(glm::radians(60.0f), 2.0f, 0.1f, 25.0f);
+            display_state.projection_matrix[0] = glm::perspective(glm::radians(60.0f), 2.0f, 0.1f, 100.0f);
         }
         display->draw(display_state, frame_width, frame_height);
         
