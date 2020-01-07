@@ -16,7 +16,7 @@ void FrameRender::update(const GameState &game_state, const DisplayState &displa
         glClear(static_cast<uint32_t>(GL_COLOR_BUFFER_BIT) | static_cast<uint32_t>(GL_DEPTH_BUFFER_BIT));
         glm::mat4 head_transform{1.0f};
         for (auto &&organ : game_state.organs) {
-            if (organ.getType() == unit::unit_type_t::ORGAN) {
+            if (organ.organ_type == organ_type_t::PLAYER_HEAD) {
                 auto origin = organ.obj->getWorldTransform().getOrigin();
                 head_transform = glm::translate(glm::mat4{1.0f}, glm::vec3{origin.x(), -origin.y(), origin.z()});
                 break;
@@ -59,19 +59,24 @@ FrameRender::FrameRender()
 }
 
 void FrameRender::_render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix) {
+    
+    auto p = glm::inverse(view_matrix) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
+    std::cout << "(" << p.x << ", " << p.y << ", " << p.z << ")" << std::endl;
+    
     _shader->with([&](Shader &shader) {
         shader["view_matrix"] = view_matrix;
         shader["projection_matrix"] = projection_matrix;
-        for (auto &&organ : game_state.organs) {
-            if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-                organ.geometry->draw(shader);
-            }
-        }
-        for (auto &&enemy : game_state.enemies) {
-            enemy->geometry->draw(shader);
-        }
-        for (auto &&bullet : game_state.bullets) {
-            bullet->geometry->draw(shader);
-        }
+        _geometry->draw(shader);
+//        for (auto &&organ : game_state.organs) {
+//            if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
+//                organ.geometry->draw(shader);
+//            }
+//        }
+//        for (auto &&enemy : game_state.enemies) {
+//            enemy->geometry->draw(shader);
+//        }
+//        for (auto &&bullet : game_state.bullets) {
+//            bullet->geometry->draw(shader);
+//        }
     });
 }
