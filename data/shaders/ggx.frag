@@ -29,5 +29,5 @@ void main() {
     vec3 N = normalize(Normal);
     vec3 Kd = has_diffuse_texture == 0 ? diffuse_color : pow(texture(diffuse_texture, TexCoord).rgb, vec3(2.2f));
     vec3 Ks = has_specular_texture == 0 ? specular_color : pow(texture(specular_texture, TexCoord).rgb, vec3(2.2f));
-    FragColor = pow(Kd, vec3(1.0f / 2.2f));
+    FragColor = pow(N * 0.5f + 0.5f, vec3(1.0f / 2.2f));
 }

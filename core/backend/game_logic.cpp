@@ -33,7 +33,7 @@ void GameLogic::init() {
 //	organGeometries[PLAYER_HAND] = Geometry::create("hand.obj");
 //	organGeometries[PLAYER_FOOT] = Geometry::create("foot.obj");
 //	organGeometries[PLAYER_BODY] = Geometry::create("body.obj");
-//	organGeometries[PLAYER_HEAD] = Geometry::create("head.obj");
+//	organGeometries[PLAYER_HEAD] = Geometry::create("head.obj"); 
 	organGeometries[PLAYER_ARM] = Geometry::create( "data/meshes/primitives/cylinder.obj");
 	organGeometries[PLAYER_LEG] = Geometry::create( "data/meshes/primitives/cylinder.obj");
 	organGeometries[PLAYER_HAND] = Geometry::create("data/meshes/primitives/cylinder.obj");
@@ -69,6 +69,10 @@ void GameLogic::init() {
 			break;
 		}
 		btDefaultMotionState* organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
+
+		if(organ_type == PLAYER_HEAD)
+			organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 10)));
+
 		btScalar mass = 5;
 		btVector3 inertia(0, 0, 0); //todo
 		shape->calculateLocalInertia(mass, inertia);
@@ -205,6 +209,9 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 		const btCollisionObject* bB = static_cast<const btCollisionObject*>(contactManifold->getBody1());
 		unit* unitA = (unit*)(bA->getUserPointer());
 		unit* unitB = (unit*)(bB->getUserPointer());
+
+		if(!unitA || !unitB)
+			continue;
 
 		if(unitA->getType() == unitB->getType())
 			continue;
