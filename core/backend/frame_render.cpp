@@ -14,7 +14,7 @@ void FrameRender::update(const GameState &game_state, const DisplayState &displa
         glScissor(0, 0, config::eye_frame_width * 2ul, config::eye_frame_height);
         glClearColor(1.0f, 0.5f, 0.25f, 1.0f);
         glClear(static_cast<uint32_t>(GL_COLOR_BUFFER_BIT) | static_cast<uint32_t>(GL_DEPTH_BUFFER_BIT));
-        glm::mat4 head_transform;
+        glm::mat4 head_transform{1.0f};
         for (auto &&organ : game_state.organs) {
             if (organ.getType() == unit::unit_type_t::ORGAN) {
                 auto origin = organ.obj->getWorldTransform().getOrigin();

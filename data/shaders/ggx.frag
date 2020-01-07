@@ -19,7 +19,10 @@ uniform int has_specular_texture;
 uniform vec3 diffuse_color;
 uniform vec3 specular_color;
 uniform float roughness;
+
 uniform vec3 camera_position;
+uniform vec3 light_emission;
+uniform vec3 light_position;
 
 void main() {
     vec3 V = normalize(camera_position - Position);
