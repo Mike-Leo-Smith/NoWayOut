@@ -34,15 +34,15 @@ void GameLogic::init() {
 //	organGeometries[PLAYER_FOOT] = Geometry::create("foot.obj");
 //	organGeometries[PLAYER_BODY] = Geometry::create("body.obj");
 //	organGeometries[PLAYER_HEAD] = Geometry::create("head.obj"); 
-	organGeometries[PLAYER_ARM] = Geometry::create( "data/meshes/primitives/cylinder.obj");
-	organGeometries[PLAYER_LEG] = Geometry::create( "data/meshes/primitives/cylinder.obj");
-	organGeometries[PLAYER_HAND] = Geometry::create("data/meshes/primitives/cylinder.obj");
-	organGeometries[PLAYER_FOOT] = Geometry::create("data/meshes/primitives/cylinder.obj");
-	organGeometries[PLAYER_BODY] = Geometry::create("data/meshes/primitives/cylinder.obj");
-	organGeometries[PLAYER_HEAD] = Geometry::create("data/meshes/primitives/cylinder.obj");
+	organGeometries[PLAYER_ARM] = Geometry::create( "data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
+	organGeometries[PLAYER_LEG] = Geometry::create( "data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
+	organGeometries[PLAYER_HAND] = Geometry::create("data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
+	organGeometries[PLAYER_FOOT] = Geometry::create("data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
+	organGeometries[PLAYER_BODY] = Geometry::create("data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
+	organGeometries[PLAYER_HEAD] = Geometry::create("data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
 
 	auto rotation = glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 0.0f, 0.0f});
-	enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj", rotation)));
+	enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj", rotation * glm::scale(glm::mat4{1.0f}, glm::vec3{0.05f, 0.05f, 0.05f}))));
 	enemyBook.push_back(enemy_book_elem(1, 100, 1.5, true, Geometry::create("data/meshes/airplane/airplane.obj", rotation * glm::scale(glm::mat4{1.0f}, glm::vec3{0.005f, 0.005f, 0.005f}))));
 
 	organ_type_t organ_types[14]{PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_HAND, PLAYER_HAND, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY, PLAYER_HEAD};
