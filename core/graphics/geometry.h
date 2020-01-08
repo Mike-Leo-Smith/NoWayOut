@@ -45,6 +45,9 @@ private:
     std::vector<Mesh> _meshes;
     std::vector<glm::vec3> _position_buffer;
     std::vector<uint32_t> _index_buffer;
+    uint32_t _shadow_vao_handle;
+    uint32_t _shadow_vbo_handle;
+    uint32_t _shadow_ebo_handle;
     glm::mat4 _transform{1.0f};
 
 public:

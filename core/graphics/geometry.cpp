@@ -158,6 +158,12 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         }
     }
     
+    glGenVertexArrays(1, &geometry->_shadow_vao_handle);
+    glBindVertexArray(geometry->_shadow_vao_handle);
+    
+    glGenBuffers(1, &geometry->_shadow_vbo_handle);
+    glBindBuffer(GL_ARRAY_BUFFER, geometry->_shadow_vbo_handle);
+    
     return geometry;
 }
 
