@@ -22,10 +22,21 @@ struct bullet_info
 
 struct unit
 {
-	enum unit_type_t {ORGAN, ENEMY, BULLET};
+	enum unit_type_t {GROUND, ORGAN, ENEMY, BULLET};
 	[[nodiscard]] virtual unit_type_t getType() const = 0;
 	btRigidBody* obj{nullptr};
 	Geometry* geometry;
+	void setGravity()
+	{
+		obj->activate();
+		obj->applyCentralForce(btVector3(0, -10, 0));
+	}
+};
+
+struct ground : unit
+{
+	[[nodiscard]] unit_type_t getType() const override { return GROUND; }
+	ground() {}
 };
 
 enum organ_type_t { PLAYER_ARM, PLAYER_LEG, PLAYER_HAND, PLAYER_FOOT, PLAYER_BODY, PLAYER_HEAD };
@@ -63,11 +74,6 @@ struct enemy : unit
 		direction *= length;
 		obj->activate();
 		obj->applyCentralForce(direction);
-	}
-	void setGravity()
-	{
-		obj->activate();
-		obj->applyCentralForce(btVector3(0, -10, 0));
 	}
 };
 
@@ -115,6 +121,8 @@ private:
 	
 	void applyForce();
 
+	void enemyDrop(enemy* enemyA);
+	void bulletDrop(bullet* bulletA);
 	void organCollideEnemy(organ* organA, enemy* enemyB, float impulse);
 	void enemyCollideBullet(enemy* enemyA, bullet* bulletB, float impulse);
 	void organCollideBullet(organ* organA, bullet* bulletB, float impulse);

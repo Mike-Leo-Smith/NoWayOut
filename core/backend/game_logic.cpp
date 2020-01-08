@@ -22,7 +22,7 @@ void GameLogic::init() {
     btDefaultMotionState *floorMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
     btRigidBody::btRigidBodyConstructionInfo floorRigidBodyCI(0, floorMotionState, floorShape, btVector3(0, 0, 0));
     btRigidBody *floorRigidBody = new btRigidBody(floorRigidBodyCI);
-	floorRigidBody->setUserIndex(999);
+	floorRigidBody->setUserPointer(new ground());
     world->addRigidBody(floorRigidBody);
     
     btCollisionShape *hand_foot_shape = new btConeShape(0.05f, 0.2f);
@@ -46,9 +46,10 @@ void GameLogic::init() {
     
     auto rotation = glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 0.0f, 0.0f});
     enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj")));
-    enemyBook.push_back(enemy_book_elem(1, 100, 1.5, true, Geometry::create("data/meshes/airplane/airplane.obj")));
+    //enemyBook.push_back(enemy_book_elem(1, 100, 1.5, true, Geometry::create("data/meshes/airplane/airplane.obj")));
+	//enemyBook.push_back(enemy_book_elem(0, 100, 0.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj"), bullet_info(0.1, 0.05, 15, 40)));
 
-	bulletGeometry = Geometry::create("data/meshes/primitives/sphere.obj", glm::scale())
+	//bulletGeometry = Geometry::create("data/meshes/primitives/sphere.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.05f, 0.05f, 0.05f}));
     
     organ_type_t organ_types[14]
         {PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_HAND, PLAYER_HAND, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY,
@@ -174,8 +175,24 @@ void GameLogic::organCollideBullet(organ *organA, bullet *bulletB, float impulse
     }
 }
 
+void GameLogic::enemyDrop(enemy* enemyA)
+{
+
+}
+
+void GameLogic::bulletDrop(bullet* bulletA)
+{
+
+}
+
 void GameLogic::collide(unit *unitA, unit *unitB, float impulse) {
-    if (unitA->getType() == unit::unit_type_t::ORGAN && unitB->getType() == unit::unit_type_t::ENEMY) {
+	if(unitA->getType() == unit::unit_type_t::GROUND && unitB->getType() == unit::unit_type_t::ENEMY) {
+		enemyDrop((enemy *)unitB);
+	}
+	else if(unitA->getType() == unit::unit_type_t::GROUND && unitB->getType() == unit::unit_type_t::BULLET) {
+		bulletDrop((bullet *)unitB);
+	}
+    else if (unitA->getType() == unit::unit_type_t::ORGAN && unitB->getType() == unit::unit_type_t::ENEMY) {
         organCollideEnemy((organ *)unitA, (enemy *)unitB, impulse);
     } else if (unitA->getType() == unit::unit_type_t::ENEMY && unitB->getType() == unit::unit_type_t::BULLET) {
         enemyCollideBullet((enemy *)unitA, (bullet *)unitB, impulse);
@@ -188,6 +205,10 @@ void GameLogic::applyForce()
 {
 	auto head_trans = _state.organs[13].obj->getWorldTransform();
 	auto head_origin = head_trans.getOrigin();
+	for(auto& b : _state.bullets)
+	{
+		b->setGravity();
+	}
 	for(auto& e : _state.enemies)
 	{
 		auto enemy_trans = e->obj->getWorldTransform();
@@ -215,6 +236,9 @@ void GameLogic::applyForce()
 
 void GameLogic::generateBullet()
 {
+	auto head_trans = _state.organs[13].obj->getWorldTransform();
+	auto head_origin = head_trans.getOrigin();
+
 	for(auto e : _state.enemies)
 	{
 		if(e->shooterInfo.interval <= 0)
@@ -223,6 +247,8 @@ void GameLogic::generateBullet()
 		e->lastShot++;
 		if(e->lastShot == e->shooterInfo.interval)
 		{
+			auto enemyPos = e->obj->getWorldTransform().getOrigin();
+
 			//btGImpactMeshShape* enemyShape = new btGImpactMeshShape(indexVertexArrays);
 
 			btCollisionShape *bulletShape = new btSphereShape(e->shooterInfo.radius);
@@ -230,19 +256,25 @@ void GameLogic::generateBullet()
 			btCollisionDispatcher * dispatcher = static_cast<btCollisionDispatcher *>(world->getDispatcher());
 			btGImpactCollisionAlgorithm::registerAlgorithm(dispatcher);
 
-			btDefaultMotionState* bulletMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(x, y, z)));
+			btDefaultMotionState* bulletMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), enemyPos));
 			btScalar mass = e->shooterInfo.mass;
 			btVector3 inertia(0, 0, 0);
 			bulletShape->calculateLocalInertia(mass, inertia);
 			btRigidBody::btRigidBodyConstructionInfo bulletRigidBodyCI(mass, bulletMotionState, bulletShape, inertia);
 			btRigidBody* bulletRigidBody = new btRigidBody(bulletRigidBodyCI);
-			//enemyRigidBody->setCollisionFlags(enemyRigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			bulletRigidBody->setCollisionFlags(bulletRigidBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
 			//enemyRigidBody->setActivationState(DISABLE_DEACTIVATION);
 
-			_state.enemies.push_back(new bullet());
+			_state.bullets.push_back(new bullet(bulletGeometry.get(), bulletRigidBody, false));
 
-			enemyRigidBody->setUserPointer(_state.enemies.back());
-			world->addRigidBody(enemyRigidBody);
+			bulletRigidBody->setUserPointer(_state.bullets.back());
+			world->addRigidBody(bulletRigidBody);
+
+			auto direction = head_origin - enemyPos;
+			direction.normalize();
+			float impulse = mass * e->speed;
+			direction *= impulse;
+			bulletRigidBody->applyCentralImpulse(direction);
 		}
 	}
 }
@@ -253,8 +285,8 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 	if(_state.frame == 60 || _state.frame == 120 || _state.frame == 180)//if(_state.frame % 60 == 0)
 		generateEnemy();
 
-	applyForce();
 	generateBullet();
+	applyForce();
 
 	world->stepSimulation(1 / 60.f, 10); //todo: change fps
 
@@ -275,26 +307,13 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 		unit* unitA = (unit*)(bA->getUserPointer());
 		unit* unitB = (unit*)(bB->getUserPointer());
 
-		int numContacts = contactManifold->getNumContacts();
-
-		for(int j = 0; j < numContacts; j++)
-		{
-			btManifoldPoint& pt = contactManifold->getContactPoint(j);
-			if(pt.getDistance() <= 0.f)
-			{
-				std::cout << "Collide! Impulse is " << pt.getAppliedImpulse() << " unitA is " << unitA << " " << bA->getUserIndex() << " unitB is " << unitB << " " << bB->getUserIndex() << std::endl;
-			}
-		}
-
-		if(!unitA || !unitB)
-			continue;
-
 		if(unitA->getType() == unitB->getType())
 			continue;
 
 		if(unitA->getType() > unitB->getType())
 			std::swap(unitA, unitB);
 
+		int numContacts = contactManifold->getNumContacts();
 		for(int j = 0; j < numContacts; j++)
 		{
 			btManifoldPoint& pt = contactManifold->getContactPoint(j);
