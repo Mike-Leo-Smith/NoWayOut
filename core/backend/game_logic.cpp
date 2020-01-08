@@ -288,7 +288,8 @@ void GameLogic::generateBullet()
 	}
 }
 
-void GameLogic::update(const DisplayState &display_state, const GestureState &gesture_state) { 
+void GameLogic::update(const DisplayState &display_state, const GestureState &gesture_state) {
+ 
 	_state.frame++;
 
 	if(_state.frame == 60 || _state.frame == 120 || _state.frame == 180)//if(_state.frame % 60 == 0)
@@ -298,6 +299,10 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 	applyForce();
 
 	world->stepSimulation(1 / 60.f, 10); //todo: change fps
+	
+	for (auto i = 0ul; i < _state.organs.size(); i++) {
+	    _state.organs[i].obj->getWorldTransform().setFromOpenGLMatrix(glm::value_ptr(gesture_state.nodes[i].transform()));
+	}
 
 	/*for(auto e : _state.enemies)
 	{

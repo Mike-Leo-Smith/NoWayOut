@@ -107,7 +107,7 @@ struct bullet : unit
 };
 
 struct GameState {
-	organ organs[12];
+	std::array<organ, 12ul> organs;
 	std::vector<enemy*> enemies;
 	std::vector<bullet*> bullets;
 	int frame;

@@ -54,12 +54,12 @@ class GestureCapture {
 
 private:
     GestureState _state{};
-    mutable GestureState _state_copy;
+    mutable GestureState _state_copy{};
     mutable std::mutex _mutex;
     std::thread _update_thread;
 
 public:
-    explicit GestureCapture(const std::string &address);
+    explicit GestureCapture(std::string address);
     
     [[nodiscard]] const GestureState &state() const noexcept {
         std::lock_guard guard{_mutex};

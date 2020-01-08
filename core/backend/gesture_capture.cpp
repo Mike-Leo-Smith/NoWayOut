@@ -9,13 +9,13 @@
 #include <asio/asio.hpp>
 #include "gesture_capture.h"
 
-GestureCapture::GestureCapture(const std::string &address) {
+GestureCapture::GestureCapture(std::string address) {
     
-    _update_thread = std::thread{[&] {
+    _update_thread = std::thread{[ip_address = std::move(address), this] {
         
         asio::io_service io_service;
         asio::ip::tcp::socket socket{io_service};
-        socket.connect({asio::ip::address_v4::from_string(address), 6666});
+        socket.connect({asio::ip::address_v4::from_string(ip_address), 6666});
         
         std::cout << "GestureCapture connected!" << std::endl;
         
