@@ -7,6 +7,9 @@
 #include <array>
 #include <fstream>
 
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+
 namespace util {
 
 template<typename ...Args>
@@ -81,5 +84,43 @@ struct Noncopyable {
     Noncopyable(const Noncopyable &) = delete;
     Noncopyable &operator=(const Noncopyable &) = delete;
 };
+
+struct Onb {
+    explicit Onb(glm::vec3 normal) : m_normal{normal} {
+        
+        if (std::abs(m_normal.x) > std::abs(m_normal.z)) {
+            m_binormal.x = -m_normal.y;
+            m_binormal.y = m_normal.x;
+            m_binormal.z = 0;
+        } else {
+            m_binormal.x = 0;
+            m_binormal.y = -m_normal.z;
+            m_binormal.z = m_normal.y;
+        }
+        m_binormal = normalize(m_binormal);
+        m_tangent = cross(m_binormal, m_normal);
+    }
+    
+    [[nodiscard]] glm::vec3 inverse_transform(glm::vec3 p) const {
+        return p.x * m_tangent + p.y * m_binormal + p.z * m_normal;
+    }
+    
+    [[nodiscard]] glm::mat3 inverse_transform() const noexcept {
+        return {
+            m_tangent.x, m_binormal.x, m_normal.x,
+            m_tangent.y, m_binormal.y, m_normal.y,
+            m_tangent.z, m_binormal.z, m_normal.z,
+        };
+    }
+    
+    [[nodiscard]] glm::vec3 transform(glm::vec3 p) const {
+        return {glm::dot(p, m_tangent), glm::dot(p, m_binormal), glm::dot(p, m_normal)};
+    }
+    
+    glm::vec3 m_tangent{};
+    glm::vec3 m_binormal{};
+    glm::vec3 m_normal{};
+};
+
 
 }

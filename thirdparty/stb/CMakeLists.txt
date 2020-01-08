@@ -1,0 +1,1 @@
+add_library(stb stb_image.cpp stb_image.h stb_vorbis.c stb_vorbis.h)

@@ -33,7 +33,7 @@ struct unit
 		obj->applyCentralForce(btVector3(0, -10, 0));
 	}
 	
-	[[nodiscard]] glm::mat4 transform() const noexcept {
+	[[nodiscard]] virtual glm::mat4 transform() const noexcept {
 	    glm::mat4 m;
 	    obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
 	    return m;
@@ -107,7 +107,7 @@ struct bullet : unit
 };
 
 struct GameState {
-	organ organs[14];
+	organ organs[12];
 	std::vector<enemy*> enemies;
 	std::vector<bullet*> bullets;
 	int frame;

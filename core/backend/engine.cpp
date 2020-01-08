@@ -18,7 +18,6 @@ void Engine::run() noexcept {
     _last_time_point = std::chrono::high_resolution_clock::now();
     while (!_game_logic->should_exit()) {
         auto display_state = _network->receive_display_state();
-        _gesture_capture->update(_game_logic->state());
         _game_logic->update(display_state, _gesture_capture->state());
         _frame_render->update(_game_logic->state(), display_state);
         _network->send_frame(_frame_render->frame());

@@ -9,7 +9,7 @@
 
 #include <glad/glad.h>
 #include <tinyobjloader/tiny_obj_loader.h>
-#include <stb_image/stb_image.h>
+#include <stb/stb_image.h>
 #include <util/util.h>
 #include "geometry.h"
 

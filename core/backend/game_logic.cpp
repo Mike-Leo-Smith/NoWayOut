@@ -47,7 +47,7 @@ void GameLogic::init() {
 	bulletGeometry = Geometry::create("data/meshes/primitives/sphere.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.05f, 0.05f, 0.05f}));
     
     organ_type_t organ_types[14]
-        {PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_HAND, PLAYER_HAND, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY,
+        {PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY,
          PLAYER_HEAD};
     
     for (int i = 0; i < 14; i++) {
@@ -209,7 +209,7 @@ void GameLogic::collide(unit *unitA, unit *unitB, float impulse) {
 
 void GameLogic::applyForce()
 {
-	auto head_trans = _state.organs[13].obj->getWorldTransform();
+	auto head_trans = _state.organs[11].obj->getWorldTransform();
 	auto head_origin = head_trans.getOrigin();
 	for(auto& b : _state.bullets)
 	{

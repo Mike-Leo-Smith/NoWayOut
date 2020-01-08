@@ -11,6 +11,10 @@
 #ifndef ASIO_HPP
 #define ASIO_HPP
 
+#ifndef ASIO_STANDALONE
+#define ASIO_STANDALONE 1
+#endif
+
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
