@@ -36,7 +36,7 @@ struct GestureNode {
         auto direction = to - from;
         auto length = glm::length(direction);
         if (length < 1e-3f) {
-            return glm::mat4{1.0f};
+            return glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, -10.0f, 0.0f});
         }
         direction *= 1.0f / length;
         return glm::mat4{util::Onb{direction}.inverse_transform()} * glm::translate(glm::mat4{1.0f}, from) * glm::scale(glm::mat4{1.0f}, glm::vec3{radius, length * 0.5f, radius});

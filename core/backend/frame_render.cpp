@@ -20,7 +20,8 @@ void FrameRender::update(const GameState &game_state, const DisplayState &displa
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type == organ_type_t::PLAYER_HEAD) {
                 auto origin = organ.obj->getWorldTransform().getOrigin();
-                head_transform = glm::translate(glm::mat4{1.0f}, glm::vec3{-origin.x(), -origin.y(), -origin.z()});
+                auto head_position = glm::vec3{origin.x(), origin.y() + 2.0f, origin.z()};
+                head_transform = glm::translate(glm::mat4{1.0f}, -head_position);
                 break;
             }
         }
@@ -68,6 +69,7 @@ FrameRender::FrameRender()
 void FrameRender::_render(const GameState &game_state, glm::mat4 view_matrix, glm::mat4 projection_matrix) {
     
     glm::vec3 camera_position{glm::inverse(view_matrix) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f}};
+    std::cout << "RenderEye: " << camera_position.x << " " << camera_position.y << " " << camera_position.z << std::endl;
     
     _shader->with([&](Shader &shader) {
         shader["view_matrix"] = view_matrix;

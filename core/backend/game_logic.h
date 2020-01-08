@@ -34,9 +34,9 @@ struct unit
 	}
 	
 	[[nodiscard]] glm::mat4 transform() const noexcept {
-	    glm::mat4 m;
-	    obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
-	    return m;
+	    float m[16];
+	    obj->getWorldTransform().getOpenGLMatrix(m);
+	    return *reinterpret_cast<glm::mat4 *>(m);
 	}
 };
 
@@ -46,7 +46,7 @@ struct ground : unit
 	ground() {}
 };
 
-enum organ_type_t { PLAYER_ARM, PLAYER_LEG, PLAYER_HAND, PLAYER_FOOT, PLAYER_BODY, PLAYER_HEAD };
+enum organ_type_t { PLAYER_ARM, PLAYER_LEG, PLAYER_FOOT, PLAYER_BODY, PLAYER_HEAD };
 
 struct organ : unit
 {

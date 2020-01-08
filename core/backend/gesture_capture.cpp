@@ -47,6 +47,8 @@ GestureCapture::GestureCapture(std::string address) {
             _state.nodes[10] = {coords[1], coords[8], config::body_radius};  // body
 
             _state.nodes[11] = {coords[17], coords[18], glm::length(coords[17] - coords[18]) * 0.5f};  // head
+            
+            std::cout << "keypoint_0: " << coords[0].x << " " << coords[0].y << " " << coords[0].z << std::endl;
 
         }
 

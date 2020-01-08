@@ -34,7 +34,7 @@ void GameLogic::init() {
 
     organGeometries[PLAYER_ARM] = Geometry::create("data/meshes/primitives/cylinder.obj");
     organGeometries[PLAYER_LEG] = Geometry::create("data/meshes/primitives/cylinder.obj");
-    organGeometries[PLAYER_HAND] = Geometry::create("data/meshes/primitives/cylinder.obj");
+//    organGeometries[PLAYER_HAND] = Geometry::create("data/meshes/primitives/cylinder.obj");
     organGeometries[PLAYER_FOOT] = Geometry::create("data/meshes/primitives/cylinder.obj");
     organGeometries[PLAYER_BODY] = Geometry::create("data/meshes/primitives/cylinder.obj");
     organGeometries[PLAYER_HEAD] = Geometry::create("data/meshes/primitives/cylinder.obj");
@@ -59,7 +59,7 @@ void GameLogic::init() {
                 shape = arm_leg_shape;
                 break;
             case PLAYER_FOOT:
-            case PLAYER_HAND:
+//            case PLAYER_HAND:
                 shape = hand_foot_shape;
                 break;
             case PLAYER_BODY:
