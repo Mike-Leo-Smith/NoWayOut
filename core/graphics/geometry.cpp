@@ -163,6 +163,13 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
     
     glGenBuffers(1, &geometry->_shadow_vbo_handle);
     glBindBuffer(GL_ARRAY_BUFFER, geometry->_shadow_vbo_handle);
+    glBufferData(GL_ARRAY_BUFFER, geometry->_position_buffer.size() * sizeof(glm::vec3), geometry->_position_buffer.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(glm::vec3), nullptr);
+    
+    glGenBuffers(1, &geometry->_shadow_ebo_handle);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->_shadow_ebo_handle);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, geometry->_index_buffer.size() * sizeof(uint32_t), geometry->_index_buffer.data(), GL_STATIC_DRAW);
     
     return geometry;
 }
@@ -170,13 +177,13 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
 void Geometry::draw(Shader &shader) {
     shader["transform"] = _transform;
     for (auto &&mesh : _meshes) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mesh.material.diffuse_texture_handle);
-        shader["diffuse_texture"] = 0;
-        shader["has_diffuse_texture"] = mesh.material.diffuse_texture_handle;
         glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, mesh.material.diffuse_texture_handle);
+        shader["diffuse_texture"] = 1;
+        shader["has_diffuse_texture"] = mesh.material.diffuse_texture_handle;
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, mesh.material.specular_texture_handle);
-        shader["specular_texture"] = 1;
+        shader["specular_texture"] = 2;
         shader["has_specular_texture"] = mesh.material.specular_texture_handle;
         shader["diffuse_color"] = mesh.material.diffuse_color;
         shader["specular_color"] = mesh.material.specular_color;
@@ -184,4 +191,11 @@ void Geometry::draw(Shader &shader) {
         glBindVertexArray(mesh.vao_handle);
         glDrawArrays(GL_TRIANGLES, 0, mesh.vertex_count);
     }
+}
+
+void Geometry::shadow(Shader &shader) {
+    shader["transform"] = _transform;
+    glBindVertexArray(_shadow_vao_handle);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _shadow_ebo_handle);
+    glDrawElements(GL_TRIANGLES, _index_buffer.size(), GL_UNSIGNED_INT, nullptr);
 }
