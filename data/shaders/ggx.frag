@@ -96,5 +96,5 @@ void main() {
     }
     Lo += 0.15f * Kd;  // ambient
     FragColor = pow(Lo, vec3(1.0f / 2.2f));
-    FragColor = N * 0.5f + 0.5f;
+//    FragColor = N * 0.5f + 0.5f;
 }
