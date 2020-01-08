@@ -43,9 +43,15 @@ class Geometry {
 
 private:
     std::vector<Mesh> _meshes;
-    glm::mat4 _transform;
+    std::vector<glm::vec3> _position_buffer;
+    std::vector<uint32_t> _index_buffer;
+    glm::mat4 _transform{1.0f};
 
 public:
-    [[nodiscard]] static std::unique_ptr<Geometry> create(const std::filesystem::path &path, glm::mat4 transform = glm::mat4{1.0f}) noexcept;
+    [[nodiscard]] static std::unique_ptr<Geometry> create(const std::filesystem::path &path, glm::mat4 initial_transform = glm::mat4{1.0f}) noexcept;
     void draw(Shader &shader);
+    [[nodiscard]] glm::mat4 transform() const noexcept { return _transform; }
+    void set_transform(glm::mat4 transform) noexcept { _transform = transform; }
+    [[nodiscard]] std::vector<glm::vec3> &position_buffer() noexcept { return _position_buffer; }
+    [[nodiscard]] std::vector<uint32_t> &index_buffer() noexcept { return _index_buffer; }
 };

@@ -13,20 +13,21 @@
 #include <util/util.h>
 #include "geometry.h"
 
-std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, glm::mat4 transform) noexcept {
+std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, glm::mat4 initial_transform) noexcept {
     
     auto geometry = std::make_unique<Geometry>();
-    geometry->_transform = transform;
     
     tinyobj::ObjReaderConfig loader_config;
     loader_config.triangulate = true;
+    loader_config.vertex_color = false;
     tinyobj::ObjReader loader;
-    loader.ParseFromFile(std::filesystem::absolute(path).string(), loader_config);
+    loader.ParseFromFile(path, loader_config);
     
     auto directory = path.parent_path();
-    std::unordered_map<std::string, uint32_t> loaded_textures;
     
     auto load_texture = [&](auto &&file_name) {
+        
+        static thread_local std::unordered_map<std::string, uint32_t> loaded_textures;
         
         if (file_name.empty()) { return 0u; }
         
@@ -71,23 +72,37 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
     auto &&normals = loader.GetAttrib().normals;
     auto &&tex_coords = loader.GetAttrib().texcoords;
     
+    geometry->_position_buffer.resize(positions.size() / 3ul);
+    for (auto i = 0ul; i < geometry->_position_buffer.size(); i++) {
+        geometry->_position_buffer[i] = initial_transform * glm::vec4{reinterpret_cast<const glm::vec3 *>(positions.data())[i], 1.0f};
+    }
+    
+    auto initial_normal_matrix = glm::transpose(glm::inverse(glm::mat3{initial_transform}));
+    
     std::vector<std::vector<glm::vec3>> position_buffers(materials.size());
     std::vector<std::vector<glm::vec3>> normal_buffers(materials.size());
     std::vector<std::vector<glm::vec2>> tex_coord_buffers(materials.size());
     for (auto &&shape : loader.GetShapes()) {
         std::cout << "Info: loading mesh '" << shape.name << "'..." << std::endl;
+        auto offset = 0ul;
         for (auto face = 0ul; face < shape.mesh.num_face_vertices.size(); face++) {
             auto material_id = shape.mesh.material_ids[face];
-            auto i0 = shape.mesh.indices[face * 3ul];
-            auto i1 = shape.mesh.indices[face * 3ul + 1ul];
-            auto i2 = shape.mesh.indices[face * 3ul + 2ul];
-            position_buffers[material_id].emplace_back(positions[i0.vertex_index * 3ul], positions[i0.vertex_index * 3ul + 1ul], positions[i0.vertex_index * 3ul + 2ul]);
-            position_buffers[material_id].emplace_back(positions[i1.vertex_index * 3ul], positions[i1.vertex_index * 3ul + 1ul], positions[i1.vertex_index * 3ul + 2ul]);
-            position_buffers[material_id].emplace_back(positions[i2.vertex_index * 3ul], positions[i2.vertex_index * 3ul + 1ul], positions[i2.vertex_index * 3ul + 2ul]);
-            normal_buffers[material_id].emplace_back(normals[i0.normal_index * 3ul], normals[i0.normal_index * 3ul + 1ul], normals[i0.normal_index * 3ul + 2ul]);
-            normal_buffers[material_id].emplace_back(normals[i1.normal_index * 3ul], normals[i1.normal_index * 3ul + 1ul], normals[i1.normal_index * 3ul + 2ul]);
-            normal_buffers[material_id].emplace_back(normals[i2.normal_index * 3ul], normals[i2.normal_index * 3ul + 1ul], normals[i2.normal_index * 3ul + 2ul]);
-            if (i0.texcoord_index >= 0 && i1.texcoord_index >= 0 && i2.texcoord_index >= 0) {
+            auto i0 = shape.mesh.indices[offset];
+            auto i1 = shape.mesh.indices[offset + 1ul];
+            auto i2 = shape.mesh.indices[offset + 2ul];
+            geometry->_index_buffer.emplace_back(i0.vertex_index);
+            geometry->_index_buffer.emplace_back(i1.vertex_index);
+            geometry->_index_buffer.emplace_back(i2.vertex_index);
+            position_buffers[material_id].emplace_back(geometry->_position_buffer[i0.vertex_index]);
+            position_buffers[material_id].emplace_back(geometry->_position_buffer[i1.vertex_index]);
+            position_buffers[material_id].emplace_back(geometry->_position_buffer[i2.vertex_index]);
+            normal_buffers[material_id]
+                .emplace_back(initial_normal_matrix * glm::vec3{normals[i0.normal_index * 3ul], normals[i0.normal_index * 3ul + 1ul], normals[i0.normal_index + 3ul + 2ul]});
+            normal_buffers[material_id]
+                .emplace_back(initial_normal_matrix * glm::vec3{normals[i1.normal_index * 3ul], normals[i1.normal_index * 3ul + 1ul], normals[i1.normal_index + 3ul + 2ul]});
+            normal_buffers[material_id]
+                .emplace_back(initial_normal_matrix * glm::vec3{normals[i2.normal_index * 3ul], normals[i2.normal_index * 3ul + 1ul], normals[i2.normal_index + 3ul + 2ul]});
+            if (i0.texcoord_index > 0 && i1.texcoord_index > 0 && i2.texcoord_index > 0) {
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i0.texcoord_index * 2ul], tex_coords[i0.texcoord_index * 2ul + 1ul]);
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i1.texcoord_index * 2ul], tex_coords[i1.texcoord_index * 2ul + 1ul]);
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i2.texcoord_index * 2ul], tex_coords[i2.texcoord_index * 2ul + 1ul]);
@@ -96,6 +111,7 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
                 tex_coord_buffers[material_id].emplace_back(0.0f, 0.0f);
                 tex_coord_buffers[material_id].emplace_back(0.0f, 0.0f);
             }
+            offset += 3ul;
         }
     }
     
@@ -129,7 +145,7 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(glm::vec3), nullptr);
         
         // tex coord buffer
-        if (std::any_of(tex_coord_buffer.cbegin(), tex_coord_buffer.cend(), [](auto t) { return t.x != 0.0f || t.y != 0.0f; })) {
+        if (std::any_of(tex_coord_buffer.cbegin(), tex_coord_buffer.cend(), [](auto t) { return t.x != 0.0f && t.y != 0.0f; })) {
             glGenBuffers(1, &mesh.texture_coord_vbo_handle);
             glBindBuffer(GL_ARRAY_BUFFER, mesh.texture_coord_vbo_handle);
             glBufferData(GL_ARRAY_BUFFER, tex_coord_buffer.size() * sizeof(glm::vec2), tex_coord_buffer.data(), GL_STATIC_DRAW);
