@@ -14,8 +14,8 @@ layout (location = 0) out vec3 FragColor;
 
 uniform sampler2D diffuse_texture;
 uniform sampler2D specular_texture;
-uniform int has_diffuse_texture;
-uniform int has_specular_texture;
+uniform uint has_diffuse_texture;
+uniform uint has_specular_texture;
 uniform vec3 diffuse_color;
 uniform vec3 specular_color;
 uniform float roughness;
@@ -96,5 +96,5 @@ void main() {
     }
     Lo += 0.15f * Kd;  // ambient
     FragColor = pow(Lo, vec3(1.0f / 2.2f));
-    FragColor = N * 0.5f + 0.5f;
+//    FragColor = N * 0.5f + 0.5f;
 }

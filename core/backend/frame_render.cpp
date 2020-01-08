@@ -56,15 +56,14 @@ FrameRender::FrameRender()
     gladLoadGL();
     _framebuffer = Framebuffer::create();
     _shader = Shader::create(util::read_text_file("data/shaders/ggx.vert"), util::read_text_file("data/shaders/ggx.frag"));
-    _ground = Geometry::create("data/meshes/primitives/cube.obj",
-                               glm::scale(glm::mat4{1.0f}, glm::vec3{20.0f, 20.0f, 20.0f}) * glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, -0.5f, 0.0f}));
+    _ground = Geometry::create("data/meshes/primitives/plane.obj",
+                               glm::scale(glm::mat4{1.0f}, glm::vec3{20.0f, 20.0f, 20.0f}));
 }
 
 void FrameRender::_render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix) {
     
     glm::vec3 camera_position{glm::inverse(view_matrix) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f}};
-    
-    std::cout << game_state.playerHealth << std::endl;
+    std::cout << "Eye: (" << camera_position.x << ", " << camera_position.y << ", " << camera_position.z << ")" << std::endl;
     
     _shader->with([&](Shader &shader) {
         shader["view_matrix"] = view_matrix;

@@ -21,7 +21,7 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
     loader_config.triangulate = true;
     loader_config.vertex_color = false;
     tinyobj::ObjReader loader;
-    loader.ParseFromFile(path, loader_config);
+    loader.ParseFromFile(std::filesystem::absolute(path).string(), loader_config);
     
     auto directory = path.parent_path();
     
@@ -66,6 +66,7 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         auto specular_texture_handle = load_texture(material.specular_texname);
         auto roughness = std::sqrt(2.0f / (material.shininess + 2.0f));
         materials.emplace_back(diffuse_color, diffuse_texture_handle, specular_color, specular_texture_handle, roughness);
+        std::cout << "material: " << material.name << " " << diffuse_texture_handle << " " << specular_texture_handle << std::endl;
     }
     
     auto &&positions = loader.GetAttrib().vertices;
@@ -145,7 +146,7 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(glm::vec3), nullptr);
         
         // tex coord buffer
-        if (std::any_of(tex_coord_buffer.cbegin(), tex_coord_buffer.cend(), [](auto t) { return t.x != 0.0f && t.y != 0.0f; })) {
+        if (std::any_of(tex_coord_buffer.cbegin(), tex_coord_buffer.cend(), [](auto t) { return t.x != 0.0f || t.y != 0.0f; })) {
             glGenBuffers(1, &mesh.texture_coord_vbo_handle);
             glBindBuffer(GL_ARRAY_BUFFER, mesh.texture_coord_vbo_handle);
             glBufferData(GL_ARRAY_BUFFER, tex_coord_buffer.size() * sizeof(glm::vec2), tex_coord_buffer.data(), GL_STATIC_DRAW);

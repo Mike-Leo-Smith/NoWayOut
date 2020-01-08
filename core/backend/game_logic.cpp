@@ -71,7 +71,7 @@ void GameLogic::init() {
         btDefaultMotionState *organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
         
         if (organ_type == PLAYER_HEAD) {
-            organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 10)));
+            organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 2, 3)));
         }
         
         btScalar mass = 5;
