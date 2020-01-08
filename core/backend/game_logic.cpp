@@ -153,31 +153,42 @@ void GameLogic::organCollideEnemy(organ *organA, enemy *enemyB, float impulse) {
 }
 
 void GameLogic::enemyCollideBullet(enemy *enemyA, bullet *bulletB, float impulse) {
-    enemyA->health -= impulse;
+	if(bulletB->isPlayers)
+	{
+		bulletDrop(bulletB);
+		enemyA->health -= impulse;
+	}
 }
 
 void GameLogic::organCollideBullet(organ *organA, bullet *bulletB, float impulse) {
-    if (organA->organ_type == organ_type_t::PLAYER_BODY) {
-        _state.playerHealth -= impulse;
-    } else if (organA->organ_type == organ_type_t::PLAYER_HEAD) {
-        _state.playerHealth -= impulse * 1.5;
-    } else {
-        _state.playerHealth -= impulse * 0.3;
-    }
-    
-    if (_state.playerHealth < 0) { //todo
-        std::cout << "You are dead\n";
-    }
+	if(!bulletB->isPlayers)
+	{
+		bulletDrop(bulletB);
+		if(organA->organ_type == organ_type_t::PLAYER_BODY) {
+			_state.playerHealth -= impulse;
+		}
+		else if(organA->organ_type == organ_type_t::PLAYER_HEAD) {
+			_state.playerHealth -= impulse * 1.5;
+		}
+		else {
+			_state.playerHealth -= impulse * 0.3;
+		}
+
+		if(_state.playerHealth < 0) { //todo
+			std::cout << "You are dead\n";
+		}
+	}
 }
 
 void GameLogic::enemyDrop(enemy* enemyA)
 {
-
+	if(enemyA->health <= 0)
+		enemyA->shouldRemove = true;
 }
 
 void GameLogic::bulletDrop(bullet* bulletA)
 {
-
+	bulletA->shouldRemove = true;
 }
 
 void GameLogic::collide(unit *unitA, unit *unitB, float impulse) {
@@ -236,12 +247,15 @@ void GameLogic::generateBullet()
 
 	for(auto e : _state.enemies)
 	{
+
 		if(e->shooterInfo.interval <= 0)
 			continue;
 
 		e->lastShot++;
 		if(e->lastShot == e->shooterInfo.interval)
 		{
+			e->lastShot = 0;
+
 			auto enemyPos = e->obj->getWorldTransform().getOrigin();
 
 			//btGImpactMeshShape* enemyShape = new btGImpactMeshShape(indexVertexArrays);
@@ -270,8 +284,6 @@ void GameLogic::generateBullet()
 			float impulse = mass * e->speed;
 			direction *= impulse;
 			bulletRigidBody->applyCentralImpulse(direction);
-
-			std::cout << "generate bullet ok\n";
 		}
 	}
 }
@@ -287,11 +299,13 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 
 	world->stepSimulation(1 / 60.f, 10); //todo: change fps
 
-	for(auto e : _state.enemies)
+	/*for(auto e : _state.enemies)
 	{
 		auto origin = e->obj->getWorldTransform().getOrigin();
 		std::cout << "enemy: " << origin.x() << " " << origin.y() << " " << origin.z() << "\n";
-	}
+	}*/
+
+	std::cout << _state.bullets.size() << "\n";
 
 	int numManifolds = world->getDispatcher()->getNumManifolds();
 	for(int i = 0; i < numManifolds; ++i)  // pairs
@@ -320,21 +334,32 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 		}
 	}
 	
-	auto update_object_transform = [](unit &object) {
-		glm::mat4 m;
-		object.obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
-	    object.geometry->set_transform(m);
+	auto remove_elem = [&](auto &vec) {
+		auto first_remove = std::remove_if(vec.begin(), vec.end(), [](auto e) { return e->shouldRemove; });
+		for(auto it = first_remove; it != vec.end(); it++)
+			world->removeRigidBody((*it)->obj);
+		vec.erase(first_remove, vec.end());
 	};
-	
-	for (auto &&organ : _state.organs) {
-	    update_object_transform(organ);
-	}
-	for (auto &&enemy : _state.enemies) {
-	    update_object_transform(*enemy);
-	}
-	for (auto &&bullet : _state.bullets) {
-	    update_object_transform(*bullet);
-	}
-	
+
+	remove_elem(_state.enemies);
+	remove_elem(_state.bullets);
+
+
+//	auto update_object_transform = [](unit &object) {
+//	    glm::mat4 m;
+//	    object.obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+//	    object.geometry->set_transform(m);
+//	};
+//
+//	for (auto &&organ : _state.organs) {
+//	    update_object_transform(organ);
+//	}
+//	for (auto &&enemy : _state.enemies) {
+//	    update_object_transform(*enemy);
+//	}
+//	for (auto &&bullet : _state.bullets) {
+//	    update_object_transform(*bullet);
+//	}
+//
 	
 }

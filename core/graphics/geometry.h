@@ -48,14 +48,11 @@ private:
     uint32_t _shadow_vao_handle;
     uint32_t _shadow_vbo_handle;
     uint32_t _shadow_ebo_handle;
-    glm::mat4 _transform{1.0f};
 
 public:
     [[nodiscard]] static std::unique_ptr<Geometry> create(const std::filesystem::path &path, glm::mat4 initial_transform = glm::mat4{1.0f}) noexcept;
-    void draw(Shader &shader, glm::mat4 instance_transform);
-    void shadow(Shader &shader, glm::mat4 instance_transform);
-    [[nodiscard]] glm::mat4 transform() const noexcept { return _transform; }
-    void set_transform(glm::mat4 transform) noexcept { _transform = transform; }
+    void draw(Shader &shader, glm::mat4 transform = glm::mat4{1.0f});
+    void shadow(Shader &shader, glm::mat4 transform = glm::mat4{1.0f});
     [[nodiscard]] std::vector<glm::vec3> &position_buffer() noexcept { return _position_buffer; }
     [[nodiscard]] std::vector<uint32_t> &index_buffer() noexcept { return _index_buffer; }
 };

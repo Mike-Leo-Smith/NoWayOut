@@ -174,8 +174,8 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
     return geometry;
 }
 
-void Geometry::draw(Shader &shader, glm::mat4 instance_transform) {
-	shader["transform"] = instance_transform;
+void Geometry::draw(Shader &shader, glm::mat4 transform) {
+    shader["transform"] = transform;
     for (auto &&mesh : _meshes) {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, mesh.material.diffuse_texture_handle);
@@ -193,8 +193,8 @@ void Geometry::draw(Shader &shader, glm::mat4 instance_transform) {
     }
 }
 
-void Geometry::shadow(Shader &shader, glm::mat4 instance_transform) {
-    shader["transform"] = instance_transform;
+void Geometry::shadow(Shader &shader, glm::mat4 transform) {
+    shader["transform"] = transform;
     glBindVertexArray(_shadow_vao_handle);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _shadow_ebo_handle);
     glDrawElements(GL_TRIANGLES, _index_buffer.size(), GL_UNSIGNED_INT, nullptr);

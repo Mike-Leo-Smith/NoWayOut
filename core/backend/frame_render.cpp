@@ -82,20 +82,14 @@ void FrameRender::_render(const GameState &game_state, glm::mat4 view_matrix, gl
         _ground->draw(shader, glm::mat4(1.0f));
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-				glm::mat4 m;
-				organ.obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
-                organ.geometry->draw(shader, m);
+                organ.geometry->draw(shader, organ.transform());
             }
         }
         for (auto &&enemy : game_state.enemies) {
-			glm::mat4 m;
-			enemy->obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
-            enemy->geometry->draw(shader, m);
+            enemy->geometry->draw(shader, enemy->transform());
         }
         for (auto &&bullet : game_state.bullets) {
-			glm::mat4 m;
-			bullet->obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
-            bullet->geometry->draw(shader, m);
+            bullet->geometry->draw(shader, bullet->transform());
         }
     });
 }
@@ -108,9 +102,9 @@ void FrameRender::_create_shadow_map() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glm::vec4 border_color{1.0, 1.0, 1.0, 1.0 };
+    glm::vec4 border_color{1.0, 1.0, 1.0, 1.0};
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border_color.x);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024u, 1024u, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 2048u, 2048u, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     
     glGenFramebuffers(1, &_shadow_fbo_handle);
     glBindFramebuffer(GL_FRAMEBUFFER, _shadow_fbo_handle);
@@ -126,35 +120,29 @@ void FrameRender::_create_shadow_map() {
 void FrameRender::_shadow_pass(const GameState &game_state) {
     
     glBindFramebuffer(GL_FRAMEBUFFER, _shadow_fbo_handle);
-    glViewport(0, 0, 1024, 1024);
+    glViewport(0, 0, 2048, 2048);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     glClear(GL_DEPTH_BUFFER_BIT);
     
-    auto light_projection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, 1.0f, 25.0f);
+    auto light_projection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, 1.0f, 25.0f); 
     auto light_view = glm::lookAt(10.0f * _light_direction, glm::vec3{}, glm::vec3{0.0f, 1.0f, 0.0f});
     _light_transform = light_projection * light_view;
     
     _shadow_shader->with([&](auto &shader) {
         shader["light_transform"] = _light_transform;
-        _ground->shadow(shader, glm::mat4(1.0f));
+        _ground->shadow(shader, glm::mat4());
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-				glm::mat4 m;
-				organ.obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
-                organ.geometry->shadow(shader, m);
+                organ.geometry->shadow(shader, organ.transform());
             }
         }
         for (auto &&enemy : game_state.enemies) {
-			glm::mat4 m;
-			enemy->obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
-            enemy->geometry->shadow(shader, m);
+            enemy->geometry->shadow(shader, enemy->transform());
         }
         for (auto &&bullet : game_state.bullets) {
-			glm::mat4 m;
-			bullet->obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
-            bullet->geometry->shadow(shader, m);
+            bullet->geometry->shadow(shader, bullet->transform());
         }
     });
     glDisable(GL_CULL_FACE);

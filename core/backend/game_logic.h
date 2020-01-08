@@ -26,10 +26,17 @@ struct unit
 	[[nodiscard]] virtual unit_type_t getType() const = 0;
 	btRigidBody* obj{nullptr};
 	Geometry* geometry;
+	bool shouldRemove = false;
 	void setGravity()
 	{
 		obj->activate();
 		obj->applyCentralForce(btVector3(0, -10, 0));
+	}
+	
+	[[nodiscard]] glm::mat4 transform() const noexcept {
+	    glm::mat4 m;
+	    obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+	    return m;
 	}
 };
 
