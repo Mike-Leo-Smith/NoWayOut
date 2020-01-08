@@ -11,6 +11,15 @@
 #include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
 #include <vector>
 
+struct bullet_info
+{
+	float mass;
+	float radius;
+	int speed;
+	int interval;
+	bullet_info(float _mass = 0, float _radius = 0, int _speed = 0, int _interval = 0) : mass(_mass), radius(_radius), speed(_speed), interval(_interval){}
+};
+
 struct unit
 {
 	enum unit_type_t {ORGAN, ENEMY, BULLET};
@@ -39,8 +48,11 @@ struct enemy : unit
 	int maxHealth;
 	bool isFlying;
 	float speed;
+	bullet_info shooterInfo;
+	int lastShot;
+
 	[[nodiscard]] unit_type_t getType() const override { return ENEMY; }
-	enemy(Geometry* g, btRigidBody* o, int h, bool f, float s) : health(h), maxHealth(h), isFlying(f), speed(s)
+	enemy(Geometry* g, btRigidBody* o, int h, bool f, float s, bullet_info _shooterInfo) : health(h), maxHealth(h), isFlying(f), speed(s), shooterInfo(_shooterInfo), lastShot(0)
 	{ 
 		geometry = g;
 		obj = o;
@@ -66,15 +78,15 @@ struct enemy_book_elem
 	float speed;
 	bool isFlying;
 	std::unique_ptr<Geometry> geometry;
-	enemy_book_elem(int _id, int _maxHealth, float _speed, int _isFlying, std::unique_ptr<Geometry> _geometry) : id(_id), maxHealth(_maxHealth), speed(_speed), isFlying(_isFlying), geometry(std::move(_geometry)) {}
+	bullet_info shooterInfo;
+	enemy_book_elem(int _id, int _maxHealth, float _speed, int _isFlying, std::unique_ptr<Geometry> _geometry, bullet_info _shooterInfo = bullet_info()) : id(_id), maxHealth(_maxHealth), speed(_speed), isFlying(_isFlying), geometry(std::move(_geometry)), shooterInfo(_shooterInfo) {}
 };
 
 struct bullet : unit
 {
-	int damage;
 	bool isPlayers;
 	[[nodiscard]] unit_type_t getType() const override { return BULLET; }
-	bullet(Geometry* g, btRigidBody* o, int d, bool p) : damage(d), isPlayers(p)
+	bullet(Geometry* g, btRigidBody* o, bool p) : isPlayers(p)
 	{ 
 		geometry = g; 
 		obj = o;
@@ -99,6 +111,7 @@ private:
 	
 	std::vector<std::unique_ptr<Geometry>> organGeometries;
 	std::vector<enemy_book_elem> enemyBook;
+	std::unique_ptr<Geometry> bulletGeometry;
 	
 	void applyForce();
 
@@ -110,6 +123,7 @@ private:
 public:
 	void init();
 	void generateEnemy();
+	void generateBullet();
     void update(const DisplayState &display_state, const GestureState &gesture_state);
     [[nodiscard]] const GameState &state() const noexcept { return _state; }
     

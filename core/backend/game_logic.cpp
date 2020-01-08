@@ -47,6 +47,8 @@ void GameLogic::init() {
     auto rotation = glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 0.0f, 0.0f});
     enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj")));
     enemyBook.push_back(enemy_book_elem(1, 100, 1.5, true, Geometry::create("data/meshes/airplane/airplane.obj")));
+
+	bulletGeometry = Geometry::create("data/meshes/primitives/sphere.obj", glm::scale())
     
     organ_type_t organ_types[14]
         {PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_HAND, PLAYER_HAND, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY,
@@ -133,7 +135,7 @@ void GameLogic::generateEnemy()
 	//enemyRigidBody->setCollisionFlags(enemyRigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 	//enemyRigidBody->setActivationState(DISABLE_DEACTIVATION);
 
-	_state.enemies.push_back(new enemy(enemyInfo->geometry.get(), enemyRigidBody, enemyInfo->maxHealth, flying, enemyInfo->speed));
+	_state.enemies.push_back(new enemy(enemyInfo->geometry.get(), enemyRigidBody, enemyInfo->maxHealth, flying, enemyInfo->speed, enemyInfo->shooterInfo));
 
 	enemyRigidBody->setUserPointer(_state.enemies.back());
 	world->addRigidBody(enemyRigidBody);
@@ -211,13 +213,48 @@ void GameLogic::applyForce()
 	}
 }
 
-void GameLogic::update(const DisplayState &display_state, const GestureState &gesture_state) {
+void GameLogic::generateBullet()
+{
+	for(auto e : _state.enemies)
+	{
+		if(e->shooterInfo.interval <= 0)
+			continue;
+
+		e->lastShot++;
+		if(e->lastShot == e->shooterInfo.interval)
+		{
+			//btGImpactMeshShape* enemyShape = new btGImpactMeshShape(indexVertexArrays);
+
+			btCollisionShape *bulletShape = new btSphereShape(e->shooterInfo.radius);
+
+			btCollisionDispatcher * dispatcher = static_cast<btCollisionDispatcher *>(world->getDispatcher());
+			btGImpactCollisionAlgorithm::registerAlgorithm(dispatcher);
+
+			btDefaultMotionState* bulletMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(x, y, z)));
+			btScalar mass = e->shooterInfo.mass;
+			btVector3 inertia(0, 0, 0);
+			bulletShape->calculateLocalInertia(mass, inertia);
+			btRigidBody::btRigidBodyConstructionInfo bulletRigidBodyCI(mass, bulletMotionState, bulletShape, inertia);
+			btRigidBody* bulletRigidBody = new btRigidBody(bulletRigidBodyCI);
+			//enemyRigidBody->setCollisionFlags(enemyRigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			//enemyRigidBody->setActivationState(DISABLE_DEACTIVATION);
+
+			_state.enemies.push_back(new bullet());
+
+			enemyRigidBody->setUserPointer(_state.enemies.back());
+			world->addRigidBody(enemyRigidBody);
+		}
+	}
+}
+
+void GameLogic::update(const DisplayState &display_state, const GestureState &gesture_state) { 
 	_state.frame++;
 
 	if(_state.frame == 60 || _state.frame == 120 || _state.frame == 180)//if(_state.frame % 60 == 0)
 		generateEnemy();
 
 	applyForce();
+	generateBullet();
 
 	world->stepSimulation(1 / 60.f, 10); //todo: change fps
 
