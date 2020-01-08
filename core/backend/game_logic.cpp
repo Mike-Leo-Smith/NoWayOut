@@ -46,11 +46,11 @@ void GameLogic::init() {
 
 	bulletGeometry = Geometry::create("data/meshes/primitives/sphere.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.05f, 0.05f, 0.05f}));
     
-    organ_type_t organ_types[14]
+    organ_type_t organ_types[12]
         {PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY,
          PLAYER_HEAD};
     
-    for (int i = 0; i < 14; i++) {
+    for (int i = 0; i < 12; i++) {
         btCollisionShape *shape;
         organ_type_t organ_type = organ_types[i];
         switch (organ_type) {
@@ -242,12 +242,12 @@ void GameLogic::applyForce()
 
 void GameLogic::generateBullet()
 {
-	auto head_trans = _state.organs[13].obj->getWorldTransform();
+	auto head_trans = _state.organs[11].obj->getWorldTransform();
 	auto head_origin = head_trans.getOrigin();
 
-	for(auto e : _state.enemies)
+	for(auto &&e : _state.enemies)
 	{
-
+	 
 		if(e->shooterInfo.interval <= 0)
 			continue;
 
@@ -295,6 +295,8 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 	if(_state.frame == 60 || _state.frame == 120 || _state.frame == 180)//if(_state.frame % 60 == 0)
 		generateEnemy();
 
+	std::cout << _state.enemies.size() << std::endl;
+	
 	generateBullet();
 	applyForce();
 
