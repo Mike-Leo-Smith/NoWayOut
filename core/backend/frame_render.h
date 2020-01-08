@@ -27,7 +27,7 @@ private:
     std::unique_ptr<Framebuffer> _framebuffer;
     std::unique_ptr<Shader> _shader;
     std::unique_ptr<Geometry> _ground;
-    GLFWwindow *_window{nullptr};
+    GLFWwindow *_context{nullptr};
     float _start_time{0.0f};
 
 private:

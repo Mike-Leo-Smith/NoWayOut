@@ -49,14 +49,15 @@ FrameRender::FrameRender()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
 #endif
     
-    _window = glfwCreateWindow(config::eye_frame_width * 2ul, config::eye_frame_height, "Backend", nullptr, nullptr);
-    glfwMakeContextCurrent(_window);
+    _context = glfwCreateWindow(config::eye_frame_width * 2ul, config::eye_frame_height, "Backend", nullptr, nullptr);
+    glfwHideWindow(_context);
+    glfwMakeContextCurrent(_context);
     
     gladLoadGL();
     _framebuffer = Framebuffer::create();
     _shader = Shader::create(util::read_text_file("data/shaders/ggx.vert"), util::read_text_file("data/shaders/ggx.frag"));
     _ground = Geometry::create("data/meshes/primitives/cube.obj",
-                               glm::scale(glm::mat4{1.0f}, glm::vec3{20.0f, 20.0f, 20.0f}) * glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, -1.0f, 0.0f}));
+                               glm::scale(glm::mat4{1.0f}, glm::vec3{20.0f, 20.0f, 20.0f}) * glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, -0.5f, 0.0f}));
 }
 
 void FrameRender::_render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix) {
