@@ -52,8 +52,8 @@ private:
 
 public:
     [[nodiscard]] static std::unique_ptr<Geometry> create(const std::filesystem::path &path, glm::mat4 initial_transform = glm::mat4{1.0f}) noexcept;
-    void draw(Shader &shader);
-    void shadow(Shader &shader);
+    void draw(Shader &shader, glm::mat4 instance_transform);
+    void shadow(Shader &shader, glm::mat4 instance_transform);
     [[nodiscard]] glm::mat4 transform() const noexcept { return _transform; }
     void set_transform(glm::mat4 transform) noexcept { _transform = transform; }
     [[nodiscard]] std::vector<glm::vec3> &position_buffer() noexcept { return _position_buffer; }

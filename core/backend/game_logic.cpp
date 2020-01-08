@@ -293,8 +293,6 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 		std::cout << "enemy: " << origin.x() << " " << origin.y() << " " << origin.z() << "\n";
 	}
 
-	std::cout << "camera front is " << display_state.front().x << " " << display_state.front().y << " " << display_state.front().z << "\n";
-
 	int numManifolds = world->getDispatcher()->getNumManifolds();
 	for(int i = 0; i < numManifolds; ++i)  // pairs
 	{
@@ -323,8 +321,8 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 	}
 	
 	auto update_object_transform = [](unit &object) {
-	    glm::mat4 m;
-	    object.obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+		glm::mat4 m;
+		object.obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
 	    object.geometry->set_transform(m);
 	};
 	

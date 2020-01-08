@@ -79,17 +79,23 @@ void FrameRender::_render(const GameState &game_state, glm::mat4 view_matrix, gl
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _shadow_texture_handle);
         shader["shadow_map"] = 0;
-        _ground->draw(shader);
+        _ground->draw(shader, glm::mat4(1.0f));
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-                organ.geometry->draw(shader);
+				glm::mat4 m;
+				organ.obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+                organ.geometry->draw(shader, m);
             }
         }
         for (auto &&enemy : game_state.enemies) {
-            enemy->geometry->draw(shader);
+			glm::mat4 m;
+			enemy->obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+            enemy->geometry->draw(shader, m);
         }
         for (auto &&bullet : game_state.bullets) {
-            bullet->geometry->draw(shader);
+			glm::mat4 m;
+			bullet->obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+            bullet->geometry->draw(shader, m);
         }
     });
 }
@@ -132,17 +138,23 @@ void FrameRender::_shadow_pass(const GameState &game_state) {
     
     _shadow_shader->with([&](auto &shader) {
         shader["light_transform"] = _light_transform;
-        _ground->shadow(shader);
+        _ground->shadow(shader, glm::mat4(1.0f));
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-                organ.geometry->shadow(shader);
+				glm::mat4 m;
+				organ.obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+                organ.geometry->shadow(shader, m);
             }
         }
         for (auto &&enemy : game_state.enemies) {
-            enemy->geometry->shadow(shader);
+			glm::mat4 m;
+			enemy->obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+            enemy->geometry->shadow(shader, m);
         }
         for (auto &&bullet : game_state.bullets) {
-            bullet->geometry->shadow(shader);
+			glm::mat4 m;
+			bullet->obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+            bullet->geometry->shadow(shader, m);
         }
     });
     glDisable(GL_CULL_FACE);
