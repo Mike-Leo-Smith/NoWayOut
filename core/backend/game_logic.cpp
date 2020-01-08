@@ -37,59 +37,60 @@ void GameLogic::init() {
 //	organGeometries[PLAYER_FOOT] = Geometry::create("foot.obj");
 //	organGeometries[PLAYER_BODY] = Geometry::create("body.obj");
 //	organGeometries[PLAYER_HEAD] = Geometry::create("head.obj"); 
-	organGeometries[PLAYER_ARM] = Geometry::create( "data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
-	organGeometries[PLAYER_LEG] = Geometry::create( "data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
-	organGeometries[PLAYER_HAND] = Geometry::create("data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
-	organGeometries[PLAYER_FOOT] = Geometry::create("data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
-	organGeometries[PLAYER_BODY] = Geometry::create("data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
-	organGeometries[PLAYER_HEAD] = Geometry::create("data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
-
-	auto rotation = glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 0.0f, 0.0f});
-	//enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj", rotation * glm::scale(glm::mat4{1.0f}, glm::vec3{0.05f, 0.05f, 0.05f}))));
-	enemyBook.push_back(enemy_book_elem(1, 100, 1.5, true, Geometry::create("data/meshes/airplane/airplane.obj", rotation * glm::scale(glm::mat4{1.0f}, glm::vec3{0.005f, 0.005f, 0.005f}))));
-
-	organ_type_t organ_types[14]{PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_HAND, PLAYER_HAND, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY, PLAYER_HEAD};
-
-	for(int i = 0; i < 14; i++)
-	{
-		btCollisionShape* shape;
-		organ_type_t organ_type = organ_types[i];
-		switch(organ_type)
-		{
-		case PLAYER_ARM:
-		case PLAYER_LEG:
-			shape = arm_leg_shape;
-			break;
-		case PLAYER_FOOT:
-		case PLAYER_HAND:
-			shape = hand_foot_shape;
-			break;
-		case PLAYER_BODY:
-			shape = body_shape;
-			break;
-		case PLAYER_HEAD:
-			shape = head_shape;
-			break;
-		}
-		btDefaultMotionState* organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
-
-		if(organ_type == PLAYER_HEAD)
-			organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 10)));
-
-		btScalar mass = 10;
-		btVector3 inertia(0, 0, 0); //todo
-		shape->calculateLocalInertia(mass, inertia);
-		btRigidBody::btRigidBodyConstructionInfo organRigidBodyCI(mass, organMotionState, shape, inertia);
-		btRigidBody* organRigidBody = new btRigidBody(organRigidBodyCI);
-		organRigidBody->setCollisionFlags(organRigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-		organRigidBody->setActivationState(DISABLE_DEACTIVATION);
-
-		organRigidBody->setUserPointer(&(_state.organs[i]));
-		world->addRigidBody(organRigidBody);
-
-		_state.organs[i] = organ(organGeometries[organ_type].get(), organRigidBody, organ_type);
-	}
-
+    organGeometries[PLAYER_ARM] = Geometry::create("data/meshes/primitives/cylinder.obj");
+    organGeometries[PLAYER_LEG] = Geometry::create("data/meshes/primitives/cylinder.obj");
+    organGeometries[PLAYER_HAND] = Geometry::create("data/meshes/primitives/cylinder.obj");
+    organGeometries[PLAYER_FOOT] = Geometry::create("data/meshes/primitives/cylinder.obj");
+    organGeometries[PLAYER_BODY] = Geometry::create("data/meshes/primitives/cylinder.obj");
+    organGeometries[PLAYER_HEAD] = Geometry::create("data/meshes/primitives/cylinder.obj");
+    
+    auto rotation = glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 0.0f, 0.0f});
+    enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj")));
+    enemyBook.push_back(enemy_book_elem(1, 100, 1.5, true, Geometry::create("data/meshes/airplane/airplane.obj")));
+    
+    organ_type_t organ_types[14]
+        {PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_HAND, PLAYER_HAND, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY,
+         PLAYER_HEAD};
+    
+    for (int i = 0; i < 14; i++) {
+        btCollisionShape *shape;
+        organ_type_t organ_type = organ_types[i];
+        switch (organ_type) {
+            case PLAYER_ARM:
+            case PLAYER_LEG:
+                shape = arm_leg_shape;
+                break;
+            case PLAYER_FOOT:
+            case PLAYER_HAND:
+                shape = hand_foot_shape;
+                break;
+            case PLAYER_BODY:
+                shape = body_shape;
+                break;
+            case PLAYER_HEAD:
+                shape = head_shape;
+                break;
+        }
+        btDefaultMotionState *organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
+        
+        if (organ_type == PLAYER_HEAD) {
+            organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 2, 3)));
+        }
+        
+        btScalar mass = 5;
+        btVector3 inertia(0, 0, 0); //todo
+        shape->calculateLocalInertia(mass, inertia);
+        btRigidBody::btRigidBodyConstructionInfo organRigidBodyCI(mass, organMotionState, shape, inertia);
+        btRigidBody *organRigidBody = new btRigidBody(organRigidBodyCI);
+        organRigidBody->setCollisionFlags(organRigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+        organRigidBody->setActivationState(DISABLE_DEACTIVATION);
+        
+        organRigidBody->setUserPointer(&(_state.organs[i]));
+        world->addRigidBody(organRigidBody);
+        
+        _state.organs[i] = organ(organGeometries[organ_type].get(), organRigidBody, organ_type);
+    }
+    
 }
 
 void GameLogic::generateEnemy()

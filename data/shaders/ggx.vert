@@ -13,8 +13,8 @@ uniform mat4 projection_matrix;
 uniform mat4 transform;
 
 void main() {
-    Position = aPosition;
-    Normal = aNormal;
+    Position = vec3(transform * vec4(aPosition, 1.0f));
+    Normal = transpose(inverse(mat3(transform))) * aNormal;
     TexCoord = aTexCoord;
-    gl_Position = projection_matrix * view_matrix * transform * vec4(aPosition, 1.0);
+    gl_Position = projection_matrix * view_matrix * transform * vec4(aPosition, 1.0f);
 }
