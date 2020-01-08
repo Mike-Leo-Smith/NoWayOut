@@ -30,10 +30,10 @@ private:
     std::unique_ptr<Geometry> _ground;
     GLFWwindow *_context{nullptr};
     float _start_time{0.0f};
-    uint32_t _shadow_fbo_handle;
-    uint32_t _shadow_texture_handle;
+    uint32_t _shadow_fbo_handle{};
+    uint32_t _shadow_texture_handle{};
     glm::vec3 _light_direction{1.0f, 1.0f, 1.0f};
-    glm::vec3 _light_emission{1.0f, 1.0f, 1.0f};
+    glm::vec3 _light_emission{3.0f, 3.0f, 3.0f};
     glm::mat4 _light_transform{1.0f};
 
 private:
