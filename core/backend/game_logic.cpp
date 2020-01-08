@@ -7,27 +7,27 @@
 #include <algorithm>
 
 void GameLogic::init() {
-	_state.frame = 0;
-
-	btBroadphaseInterface* broadphase = new btDbvtBroadphase();
-	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-	btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
-	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-	world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-	world->setGravity(btVector3(0, -10, 0));
-	
-	btCollisionShape* floorShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
-	btDefaultMotionState* floorMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
-	btRigidBody::btRigidBodyConstructionInfo floorRigidBodyCI(0, floorMotionState, floorShape, btVector3(0, 0, 0));
-	btRigidBody* floorRigidBody = new btRigidBody(floorRigidBodyCI);
-	world->addRigidBody(floorRigidBody);
-
-	btCollisionShape* hand_foot_shape = new btConeShape(0.05f, 0.2f);
-	btCollisionShape* arm_leg_shape = new btCylinderShape(btVector3(0.05f, 0.4f, 0.05f));
-	btCollisionShape* body_shape = new btCylinderShape(btVector3(0.4f, 0.8f, 0.4f));
-	btCollisionShape* head_shape = new btSphereShape(0.25f);
-
-	organGeometries.resize(6);
+    _state.frame = 0;
+    
+    btBroadphaseInterface *broadphase = new btDbvtBroadphase();
+    btDefaultCollisionConfiguration *collisionConfiguration = new btDefaultCollisionConfiguration();
+    btCollisionDispatcher *dispatcher = new btCollisionDispatcher(collisionConfiguration);
+    btSequentialImpulseConstraintSolver *solver = new btSequentialImpulseConstraintSolver;
+    world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+    world->setGravity(btVector3(0, -10, 0));
+    
+    btCollisionShape *floorShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
+    btDefaultMotionState *floorMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    btRigidBody::btRigidBodyConstructionInfo floorRigidBodyCI(0, floorMotionState, floorShape, btVector3(0, 0, 0));
+    btRigidBody *floorRigidBody = new btRigidBody(floorRigidBodyCI);
+    world->addRigidBody(floorRigidBody);
+    
+    btCollisionShape *hand_foot_shape = new btConeShape(0.05f, 0.2f);
+    btCollisionShape *arm_leg_shape = new btCylinderShape(btVector3(0.05f, 0.4f, 0.05f));
+    btCollisionShape *body_shape = new btCylinderShape(btVector3(0.4f, 0.8f, 0.4f));
+    btCollisionShape *head_shape = new btSphereShape(0.25f);
+    
+    organGeometries.resize(6);
 //	organGeometries[PLAYER_ARM] = Geometry::create( "arm.obj");
 //	organGeometries[PLAYER_LEG] = Geometry::create( "leg.obj");
 //	organGeometries[PLAYER_HAND] = Geometry::create("hand.obj");
@@ -140,46 +140,47 @@ void GameLogic::generateEnemy()
 	world->addRigidBody(enemyRigidBody);
 }
 
-void GameLogic::organCollideEnemy(organ* organA, enemy* enemyB, float impulse)
-{
-	enemyB->health -= impulse;
-	if(organA->organ_type == organ_type_t::PLAYER_BODY)
-		_state.playerHealth -= impulse;
-	else if(organA->organ_type == organ_type_t::PLAYER_HEAD)
-		_state.playerHealth -= impulse * 1.5;
-	else
-		_state.playerHealth -= impulse * 0.3;
-	
-	if(_state.playerHealth < 0) //todo
-		std::cout << "You are dead\n";
+void GameLogic::organCollideEnemy(organ *organA, enemy *enemyB, float impulse) {
+    enemyB->health -= impulse;
+    if (organA->organ_type == organ_type_t::PLAYER_BODY) {
+        _state.playerHealth -= impulse;
+    } else if (organA->organ_type == organ_type_t::PLAYER_HEAD) {
+        _state.playerHealth -= impulse * 1.5;
+    } else {
+        _state.playerHealth -= impulse * 0.3;
+    }
+    
+    if (_state.playerHealth < 0) { //todo
+        std::cout << "You are dead\n";
+    }
 }
 
-void GameLogic::enemyCollideBullet(enemy* enemyA, bullet* bulletB, float impulse)
-{
-	enemyA->health -= impulse;
+void GameLogic::enemyCollideBullet(enemy *enemyA, bullet *bulletB, float impulse) {
+    enemyA->health -= impulse;
 }
 
-void GameLogic::organCollideBullet(organ* organA, bullet* bulletB, float impulse)
-{
-	if(organA->organ_type == organ_type_t::PLAYER_BODY)
-		_state.playerHealth -= impulse;
-	else if(organA->organ_type == organ_type_t::PLAYER_HEAD)
-		_state.playerHealth -= impulse * 1.5;
-	else
-		_state.playerHealth -= impulse * 0.3;
-
-	if(_state.playerHealth < 0) //todo
-		std::cout << "You are dead\n";
+void GameLogic::organCollideBullet(organ *organA, bullet *bulletB, float impulse) {
+    if (organA->organ_type == organ_type_t::PLAYER_BODY) {
+        _state.playerHealth -= impulse;
+    } else if (organA->organ_type == organ_type_t::PLAYER_HEAD) {
+        _state.playerHealth -= impulse * 1.5;
+    } else {
+        _state.playerHealth -= impulse * 0.3;
+    }
+    
+    if (_state.playerHealth < 0) { //todo
+        std::cout << "You are dead\n";
+    }
 }
 
-void GameLogic::collide(unit* unitA, unit* unitB, float impulse)
-{
-	if(unitA->getType() == unit::unit_type_t::ORGAN && unitB->getType() == unit::unit_type_t::ENEMY)
-		organCollideEnemy((organ*)unitA, (enemy*)unitB, impulse);
-	else if(unitA->getType() == unit::unit_type_t::ENEMY && unitB->getType() == unit::unit_type_t::BULLET)
-		enemyCollideBullet((enemy*)unitA, (bullet*)unitB, impulse);
-	else if(unitA->getType() == unit::unit_type_t::ORGAN && unitB->getType() == unit::unit_type_t::BULLET)
-		organCollideBullet((organ*)unitA, (bullet*)unitB, impulse);
+void GameLogic::collide(unit *unitA, unit *unitB, float impulse) {
+    if (unitA->getType() == unit::unit_type_t::ORGAN && unitB->getType() == unit::unit_type_t::ENEMY) {
+        organCollideEnemy((organ *)unitA, (enemy *)unitB, impulse);
+    } else if (unitA->getType() == unit::unit_type_t::ENEMY && unitB->getType() == unit::unit_type_t::BULLET) {
+        enemyCollideBullet((enemy *)unitA, (bullet *)unitB, impulse);
+    } else if (unitA->getType() == unit::unit_type_t::ORGAN && unitB->getType() == unit::unit_type_t::BULLET) {
+        organCollideBullet((organ *)unitA, (bullet *)unitB, impulse);
+    }
 }
 
 void GameLogic::update(const DisplayState &display_state, const GestureState &gesture_state) {
