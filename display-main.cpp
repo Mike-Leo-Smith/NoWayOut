@@ -13,6 +13,7 @@ int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, false);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -23,6 +24,7 @@ int main() {
     constexpr auto window_height = static_cast<int32_t>(config::eye_frame_height);
     auto window = glfwCreateWindow(window_width, window_height, "NoWayOut - Display", nullptr, nullptr);
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);
     
     gladLoadGL();
     
@@ -59,8 +61,8 @@ int main() {
             display_state.projection_matrix[0] = glm::perspective(glm::radians(60.0f), 2.0f, 0.1f, 25.0f);
         }
         display->draw(display_state, frame_width, frame_height);
-        
-        glfwSwapBuffers(window);
+        glFlush();
+//        glfwSwapBuffers(window);
     }
     
 }
