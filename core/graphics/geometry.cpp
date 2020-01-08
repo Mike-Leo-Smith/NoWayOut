@@ -103,7 +103,7 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
                 .emplace_back(initial_normal_matrix * glm::vec3{normals[i1.normal_index * 3ul], normals[i1.normal_index * 3ul + 1ul], normals[i1.normal_index + 3ul + 2ul]});
             normal_buffers[material_id]
                 .emplace_back(initial_normal_matrix * glm::vec3{normals[i2.normal_index * 3ul], normals[i2.normal_index * 3ul + 1ul], normals[i2.normal_index + 3ul + 2ul]});
-            if (i0.texcoord_index > 0 && i1.texcoord_index > 0 && i2.texcoord_index > 0) {
+            if (i0.texcoord_index >= 0 && i1.texcoord_index >= 0 && i2.texcoord_index >= 0) {
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i0.texcoord_index * 2ul], tex_coords[i0.texcoord_index * 2ul + 1ul]);
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i1.texcoord_index * 2ul], tex_coords[i1.texcoord_index * 2ul + 1ul]);
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i2.texcoord_index * 2ul], tex_coords[i2.texcoord_index * 2ul + 1ul]);
@@ -146,15 +146,11 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(glm::vec3), nullptr);
         
         // tex coord buffer
-        if (std::any_of(tex_coord_buffer.cbegin(), tex_coord_buffer.cend(), [](auto t) { return t.x != 0.0f || t.y != 0.0f; })) {
-            glGenBuffers(1, &mesh.texture_coord_vbo_handle);
-            glBindBuffer(GL_ARRAY_BUFFER, mesh.texture_coord_vbo_handle);
-            glBufferData(GL_ARRAY_BUFFER, tex_coord_buffer.size() * sizeof(glm::vec2), tex_coord_buffer.data(), GL_STATIC_DRAW);
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(glm::vec2), nullptr);
-        } else {
-            mesh.texture_coord_vbo_handle = 0u;
-        }
+        glGenBuffers(1, &mesh.texture_coord_vbo_handle);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh.texture_coord_vbo_handle);
+        glBufferData(GL_ARRAY_BUFFER, tex_coord_buffer.size() * sizeof(glm::vec2), tex_coord_buffer.data(), GL_STATIC_DRAW);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(glm::vec2), nullptr);
     }
     
     return geometry;
