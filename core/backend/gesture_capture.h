@@ -54,7 +54,7 @@ class GestureCapture {
 
 private:
     GestureState _state{};
-    GestureState _state_copy;
+    mutable GestureState _state_copy;
     mutable std::mutex _mutex;
     std::thread _update_thread;
 
