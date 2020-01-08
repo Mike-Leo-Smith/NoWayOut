@@ -82,14 +82,14 @@ void FrameRender::_render(const GameState &game_state, glm::mat4 view_matrix, gl
         _ground->draw(shader);
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-                organ.geometry->draw(shader);
+                organ.geometry->draw(shader, organ.transform());
             }
         }
         for (auto &&enemy : game_state.enemies) {
-            enemy->geometry->draw(shader);
+            enemy->geometry->draw(shader, enemy->transform());
         }
         for (auto &&bullet : game_state.bullets) {
-            bullet->geometry->draw(shader);
+            bullet->geometry->draw(shader, bullet->transform());
         }
     });
 }
@@ -102,7 +102,7 @@ void FrameRender::_create_shadow_map() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glm::vec4 border_color{1.0, 1.0, 1.0, 1.0 };
+    glm::vec4 border_color{1.0, 1.0, 1.0, 1.0};
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border_color.x);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024u, 1024u, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     
@@ -132,17 +132,17 @@ void FrameRender::_shadow_pass(const GameState &game_state) {
     
     _shadow_shader->with([&](auto &shader) {
         shader["light_transform"] = _light_transform;
-        _ground->shadow(shader);
+        _ground->shadow(shader, glm::mat4());
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-                organ.geometry->shadow(shader);
+                organ.geometry->shadow(shader, organ.transform());
             }
         }
         for (auto &&enemy : game_state.enemies) {
-            enemy->geometry->shadow(shader);
+            enemy->geometry->shadow(shader, enemy->transform());
         }
         for (auto &&bullet : game_state.bullets) {
-            bullet->geometry->shadow(shader);
+            bullet->geometry->shadow(shader, bullet->transform());
         }
     });
     glDisable(GL_CULL_FACE);

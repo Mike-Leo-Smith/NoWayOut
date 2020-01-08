@@ -322,21 +322,21 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 		}
 	}
 	
-	auto update_object_transform = [](unit &object) {
-	    glm::mat4 m;
-	    object.obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
-	    object.geometry->set_transform(m);
-	};
-	
-	for (auto &&organ : _state.organs) {
-	    update_object_transform(organ);
-	}
-	for (auto &&enemy : _state.enemies) {
-	    update_object_transform(*enemy);
-	}
-	for (auto &&bullet : _state.bullets) {
-	    update_object_transform(*bullet);
-	}
-	
+//	auto update_object_transform = [](unit &object) {
+//	    glm::mat4 m;
+//	    object.obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+//	    object.geometry->set_transform(m);
+//	};
+//
+//	for (auto &&organ : _state.organs) {
+//	    update_object_transform(organ);
+//	}
+//	for (auto &&enemy : _state.enemies) {
+//	    update_object_transform(*enemy);
+//	}
+//	for (auto &&bullet : _state.bullets) {
+//	    update_object_transform(*bullet);
+//	}
+//
 	
 }

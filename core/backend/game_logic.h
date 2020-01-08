@@ -31,6 +31,12 @@ struct unit
 		obj->activate();
 		obj->applyCentralForce(btVector3(0, -10, 0));
 	}
+	
+	[[nodiscard]] glm::mat4 transform() const noexcept {
+	    glm::mat4 m;
+	    obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(m));
+	    return m;
+	}
 };
 
 struct ground : unit
