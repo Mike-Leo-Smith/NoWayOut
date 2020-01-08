@@ -70,7 +70,7 @@ void FrameRender::_render(const GameState &game_state, float time, glm::mat4 vie
 //        _geometry->draw(shader);
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-                //organ.geometry->draw(shader);
+                organ.geometry->draw(shader);
             }
         }
         for (auto &&enemy : game_state.enemies) {

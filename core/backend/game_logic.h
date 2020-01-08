@@ -39,9 +39,8 @@ struct enemy : unit
 	int maxHealth;
 	bool isFlying;
 	float speed;
-	btVector3 lastForce;
 	[[nodiscard]] unit_type_t getType() const override { return ENEMY; }
-	enemy(Geometry* g, btRigidBody* o, int h, bool f, float s) : health(h), maxHealth(h), isFlying(f), speed(s), lastForce(btVector3(0, 0, 0))
+	enemy(Geometry* g, btRigidBody* o, int h, bool f, float s) : health(h), maxHealth(h), isFlying(f), speed(s)
 	{ 
 		geometry = g;
 		obj = o;
@@ -50,8 +49,13 @@ struct enemy : unit
 	{
 		direction.normalize();
 		direction *= length;
-		obj->applyCentralForce(direction - lastForce);
-		lastForce = direction;
+		obj->activate();
+		obj->applyCentralForce(direction);
+	}
+	void setGravity()
+	{
+		obj->activate();
+		obj->applyCentralForce(btVector3(0, -10, 0));
 	}
 };
 
@@ -96,6 +100,7 @@ private:
 	std::vector<std::unique_ptr<Geometry>> organGeometries;
 	std::vector<enemy_book_elem> enemyBook;
 	
+	void applyForce();
 
 	void organCollideEnemy(organ* organA, enemy* enemyB, float impulse);
 	void enemyCollideBullet(enemy* enemyA, bullet* bulletB, float impulse);

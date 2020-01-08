@@ -14,12 +14,15 @@ void GameLogic::init() {
     btCollisionDispatcher *dispatcher = new btCollisionDispatcher(collisionConfiguration);
     btSequentialImpulseConstraintSolver *solver = new btSequentialImpulseConstraintSolver;
     world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-    world->setGravity(btVector3(0, -10, 0));
+    //world->setGravity(btVector3(0, -10, 0));
+    world->setGravity(btVector3(0, 0, 0));
+
     
     btCollisionShape *floorShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
-    btDefaultMotionState *floorMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    btDefaultMotionState *floorMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
     btRigidBody::btRigidBodyConstructionInfo floorRigidBodyCI(0, floorMotionState, floorShape, btVector3(0, 0, 0));
     btRigidBody *floorRigidBody = new btRigidBody(floorRigidBodyCI);
+	floorRigidBody->setUserIndex(999);
     world->addRigidBody(floorRigidBody);
     
     btCollisionShape *hand_foot_shape = new btConeShape(0.05f, 0.2f);
@@ -42,7 +45,7 @@ void GameLogic::init() {
 	organGeometries[PLAYER_HEAD] = Geometry::create("data/meshes/primitives/cylinder.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f, 0.1f, 0.1f}));
 
 	auto rotation = glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 0.0f, 0.0f});
-	enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj", rotation * glm::scale(glm::mat4{1.0f}, glm::vec3{0.05f, 0.05f, 0.05f}))));
+	//enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj", rotation * glm::scale(glm::mat4{1.0f}, glm::vec3{0.05f, 0.05f, 0.05f}))));
 	enemyBook.push_back(enemy_book_elem(1, 100, 1.5, true, Geometry::create("data/meshes/airplane/airplane.obj", rotation * glm::scale(glm::mat4{1.0f}, glm::vec3{0.005f, 0.005f, 0.005f}))));
 
 	organ_type_t organ_types[14]{PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_HAND, PLAYER_HAND, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY, PLAYER_HEAD};
@@ -109,12 +112,13 @@ void GameLogic::generateEnemy()
 	std::vector<uint32_t> index_buffer = enemyInfo->geometry->index_buffer();
 	auto& pos_buffer = enemyInfo->geometry->position_buffer();
 
-	std::cout << "generate enemy: triangle num is " << index_buffer.size() / 3 << " point num is " << pos_buffer.size() << "\n";
+	std::cout << "generate enemy: triangle num is " << index_buffer.size() / 3 << " point num is " << pos_buffer.size() << "flying is " << flying << "\n";
 
-	auto indexVertexArrays = new btTriangleIndexVertexArray(index_buffer.size() / 3, reinterpret_cast<int *>(index_buffer.data()),
-															3 * sizeof(int), pos_buffer.size(), reinterpret_cast<float*>(pos_buffer.data()), sizeof(float) * 3);
-	btGImpactMeshShape* enemyShape = new btGImpactMeshShape(indexVertexArrays);
-	enemyShape->updateBound();
+	//auto indexVertexArrays = new btTriangleIndexVertexArray(index_buffer.size() / 3, reinterpret_cast<int *>(index_buffer.data()),
+	//														3 * sizeof(int), pos_buffer.size(), reinterpret_cast<float*>(pos_buffer.data()), sizeof(float) * 3);
+	//btGImpactMeshShape* enemyShape = new btGImpactMeshShape(indexVertexArrays);
+
+	btConvexHullShape* enemyShape = new btConvexHullShape(reinterpret_cast<float*>(pos_buffer.data()), pos_buffer.size(), sizeof(float) * 3);
 
 	btCollisionDispatcher * dispatcher = static_cast<btCollisionDispatcher *>(world->getDispatcher());
 	btGImpactCollisionAlgorithm::registerAlgorithm(dispatcher);
@@ -129,12 +133,6 @@ void GameLogic::generateEnemy()
 	//enemyRigidBody->setActivationState(DISABLE_DEACTIVATION);
 
 	_state.enemies.push_back(new enemy(enemyInfo->geometry.get(), enemyRigidBody, enemyInfo->maxHealth, flying, enemyInfo->speed));
-
-	if(flying)
-	{
-		enemyRigidBody->activate();
-		enemyRigidBody->applyCentralForce(btVector3(0, 10, 0));
-	}
 
 	enemyRigidBody->setUserPointer(_state.enemies.back());
 	world->addRigidBody(enemyRigidBody);
@@ -183,19 +181,10 @@ void GameLogic::collide(unit *unitA, unit *unitB, float impulse) {
     }
 }
 
-void GameLogic::update(const DisplayState &display_state, const GestureState &gesture_state) {
-	_state.frame++;
-
-	if(_state.frame == 60 || _state.frame == 120 || _state.frame == 180)//if(_state.frame % 60 == 0)
-		generateEnemy();
-
-	
-
-	world->stepSimulation(1 / 60.f, 10); //todo: change fps
-
+void GameLogic::applyForce()
+{
 	auto head_trans = _state.organs[13].obj->getWorldTransform();
 	auto head_origin = head_trans.getOrigin();
-
 	for(auto& e : _state.enemies)
 	{
 		auto enemy_trans = e->obj->getWorldTransform();
@@ -215,9 +204,29 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 			{
 				diff_origin.setY(0);
 				e->updateForce(diff_origin, e->speed);
+				e->setGravity();
 			}
 		}
 	}
+}
+
+void GameLogic::update(const DisplayState &display_state, const GestureState &gesture_state) {
+	_state.frame++;
+
+	if(_state.frame == 60 || _state.frame == 120 || _state.frame == 180)//if(_state.frame % 60 == 0)
+		generateEnemy();
+
+	applyForce();
+
+	world->stepSimulation(1 / 60.f, 10); //todo: change fps
+
+	for(auto e : _state.enemies)
+	{
+		auto origin = e->obj->getWorldTransform().getOrigin();
+		std::cout << "enemy: " << origin.x() << " " << origin.y() << " " << origin.z() << "\n";
+	}
+
+	std::cout << "camera front is " << display_state.front().x << " " << display_state.front().y << " " << display_state.front().z << "\n";
 
 	int numManifolds = world->getDispatcher()->getNumManifolds();
 	for(int i = 0; i < numManifolds; ++i)  // pairs
@@ -235,7 +244,7 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 			btManifoldPoint& pt = contactManifold->getContactPoint(j);
 			if(pt.getDistance() <= 0.f)
 			{
-				std::cout << "Collide! Impulse is " << pt.getAppliedImpulse() << " unitA is " << unitA << " unitB is " << unitB << std::endl;
+				std::cout << "Collide! Impulse is " << pt.getAppliedImpulse() << " unitA is " << unitA << " " << bA->getUserIndex() << " unitB is " << unitB << " " << bB->getUserIndex() << std::endl;
 			}
 		}
 
