@@ -104,7 +104,7 @@ void FrameRender::_create_shadow_map() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glm::vec4 border_color{1.0, 1.0, 1.0, 1.0};
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border_color.x);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024u, 1024u, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 2048u, 2048u, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     
     glGenFramebuffers(1, &_shadow_fbo_handle);
     glBindFramebuffer(GL_FRAMEBUFFER, _shadow_fbo_handle);
@@ -120,7 +120,7 @@ void FrameRender::_create_shadow_map() {
 void FrameRender::_shadow_pass(const GameState &game_state) {
     
     glBindFramebuffer(GL_FRAMEBUFFER, _shadow_fbo_handle);
-    glViewport(0, 0, 1024, 1024);
+    glViewport(0, 0, 2048, 2048);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
