@@ -12,13 +12,14 @@ void FrameRender::update(const GameState &game_state, const DisplayState &displa
         glDisable(GL_CULL_FACE);
         glViewport(0, 0, config::eye_frame_width * 2ul, config::eye_frame_height);
         glScissor(0, 0, config::eye_frame_width * 2ul, config::eye_frame_height);
-        glClearColor(1.0f, 0.5f, 0.25f, 1.0f);
+        glClearColor(0.5f, 0.75f, 1.0f, 1.0f);
         glClear(static_cast<uint32_t>(GL_COLOR_BUFFER_BIT) | static_cast<uint32_t>(GL_DEPTH_BUFFER_BIT));
         glm::mat4 head_transform{1.0f};
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type == organ_type_t::PLAYER_HEAD) {
                 auto origin = organ.obj->getWorldTransform().getOrigin();
-                head_transform = glm::translate(glm::mat4{1.0f}, glm::vec3{origin.x(), -origin.y(), origin.z()});
+                std::cout << "Origin: (" << origin.x() << ", " << origin.y() << ", " << origin.z() << ")" << std::endl;
+                head_transform = glm::translate(glm::mat4{1.0f}, glm::vec3{-origin.x(), -origin.y(), -origin.z()});
                 break;
             }
         }
@@ -57,7 +58,7 @@ FrameRender::FrameRender()
     _framebuffer = Framebuffer::create();
     _shader = Shader::create(util::read_text_file("data/shaders/ggx.vert"), util::read_text_file("data/shaders/ggx.frag"));
     _ground = Geometry::create("data/meshes/primitives/plane.obj",
-                               glm::scale(glm::mat4{1.0f}, glm::vec3{20.0f, 20.0f, 20.0f}));
+                               glm::scale(glm::mat4{1.0f}, glm::vec3{50.0f, 50.0f, 50.0f}));
 }
 
 void FrameRender::_render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix) {

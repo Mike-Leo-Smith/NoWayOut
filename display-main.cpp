@@ -43,9 +43,9 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_SPACE)) {
             is_stereo_display = !is_stereo_display;
         } else if (glfwGetKey(window, GLFW_KEY_W)) {
-            up = glm::rotate(glm::mat4{1.0f}, -0.02f, right) * glm::vec4{up, 1.0f};
-        } else if (glfwGetKey(window, GLFW_KEY_S)) {
             up = glm::rotate(glm::mat4{1.0f}, 0.02f, right) * glm::vec4{up, 1.0f};
+        } else if (glfwGetKey(window, GLFW_KEY_S)) {
+            up = glm::rotate(glm::mat4{1.0f}, -0.02f, right) * glm::vec4{up, 1.0f};
         } else if (glfwGetKey(window, GLFW_KEY_A)) {
             right = glm::rotate(glm::mat4{1.0f}, 0.02f, up) * glm::vec4{right, 1.0f};
         } else if (glfwGetKey(window, GLFW_KEY_D)) {

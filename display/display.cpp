@@ -19,7 +19,7 @@ void Display::initialize() {
 layout (location = 0) in vec2 aCoord;
 out vec2 TexCoord;
 void main() {
-    TexCoord = vec2(aCoord.x, 1.0f - aCoord.y);
+    TexCoord = vec2(aCoord.x, aCoord.y);
     gl_Position = vec4((2.0f * aCoord - 1.0f).xy, 0.0f, 1.0f);
 })"s,
         R"(#version 410 core
@@ -132,6 +132,7 @@ void Display::_decode_loop() noexcept {
                     cv::putText(_frame, "IP: " + _ip_address, cv::Point{48 + config::eye_frame_width, 224}, cv::FONT_HERSHEY_COMPLEX, 1, cv::Scalar::all(255), 1, cv::LINE_AA);
                 }
             }
+            cv::flip(_frame, _frame, 0);
         }
         _decode_in_progress = false;
     }

@@ -98,11 +98,11 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
             position_buffers[material_id].emplace_back(geometry->_position_buffer[i1.vertex_index]);
             position_buffers[material_id].emplace_back(geometry->_position_buffer[i2.vertex_index]);
             normal_buffers[material_id]
-                .emplace_back(initial_normal_matrix * glm::vec3{normals[i0.normal_index * 3ul], normals[i0.normal_index * 3ul + 1ul], normals[i0.normal_index + 3ul + 2ul]});
+                .emplace_back(initial_normal_matrix * glm::vec3{normals[i0.normal_index * 3ul], normals[i0.normal_index * 3ul + 1ul], normals[i0.normal_index * 3ul + 2ul]});
             normal_buffers[material_id]
-                .emplace_back(initial_normal_matrix * glm::vec3{normals[i1.normal_index * 3ul], normals[i1.normal_index * 3ul + 1ul], normals[i1.normal_index + 3ul + 2ul]});
+                .emplace_back(initial_normal_matrix * glm::vec3{normals[i1.normal_index * 3ul], normals[i1.normal_index * 3ul + 1ul], normals[i1.normal_index * 3ul + 2ul]});
             normal_buffers[material_id]
-                .emplace_back(initial_normal_matrix * glm::vec3{normals[i2.normal_index * 3ul], normals[i2.normal_index * 3ul + 1ul], normals[i2.normal_index + 3ul + 2ul]});
+                .emplace_back(initial_normal_matrix * glm::vec3{normals[i2.normal_index * 3ul], normals[i2.normal_index * 3ul + 1ul], normals[i2.normal_index * 3ul + 2ul]});
             if (i0.texcoord_index >= 0 && i1.texcoord_index >= 0 && i2.texcoord_index >= 0) {
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i0.texcoord_index * 2ul], tex_coords[i0.texcoord_index * 2ul + 1ul]);
                 tex_coord_buffers[material_id].emplace_back(tex_coords[i1.texcoord_index * 2ul], tex_coords[i1.texcoord_index * 2ul + 1ul]);
@@ -151,6 +151,11 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         glBufferData(GL_ARRAY_BUFFER, tex_coord_buffer.size() * sizeof(glm::vec2), tex_coord_buffer.data(), GL_STATIC_DRAW);
         glEnableVertexAttribArray(2);
         glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(glm::vec2), nullptr);
+        
+        if (std::all_of(tex_coord_buffer.cbegin(), tex_coord_buffer.cend(), [](glm::vec2 uv) noexcept { return uv.x == 0.0f && uv.y == 0.0f; })) {
+            mesh.material.diffuse_texture_handle = 0u;
+            mesh.material.specular_texture_handle = 0u;
+        }
     }
     
     return geometry;
