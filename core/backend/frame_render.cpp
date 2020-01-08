@@ -64,15 +64,13 @@ void FrameRender::_render(const GameState &game_state, float time, glm::mat4 vie
 //    auto p = glm::inverse(view_matrix) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
 //    std::cout << "(" << p.x << ", " << p.y << ", " << p.z << ")" << std::endl;
     
-    std::cout << game_state.playerHealth << std::endl;
-    
     _shader->with([&](Shader &shader) {
         shader["view_matrix"] = view_matrix;
         shader["projection_matrix"] = projection_matrix;
 //        _geometry->draw(shader);
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-                organ.geometry->draw(shader);
+                //organ.geometry->draw(shader);
             }
         }
         for (auto &&enemy : game_state.enemies) {

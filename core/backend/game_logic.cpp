@@ -73,7 +73,7 @@ void GameLogic::init() {
 		if(organ_type == PLAYER_HEAD)
 			organMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 10)));
 
-		btScalar mass = 5;
+		btScalar mass = 10;
 		btVector3 inertia(0, 0, 0); //todo
 		shape->calculateLocalInertia(mass, inertia);
 		btRigidBody::btRigidBodyConstructionInfo organRigidBodyCI(mass, organMotionState, shape, inertia);
@@ -104,7 +104,21 @@ void GameLogic::generateEnemy()
 	float y = flying ? 1.5 : 0;
 	float z = distance * std::sinf(theta);
 	
-	btCollisionShape* enemyShape = new btSphereShape(0.5);
+	//btCollisionShape* enemyShape = new btSphereShape(0.5);
+
+	std::vector<uint32_t> index_buffer = enemyInfo->geometry->index_buffer();
+	auto& pos_buffer = enemyInfo->geometry->position_buffer();
+
+	std::cout << "generate enemy: triangle num is " << index_buffer.size() / 3 << " point num is " << pos_buffer.size() << "\n";
+
+	auto indexVertexArrays = new btTriangleIndexVertexArray(index_buffer.size() / 3, reinterpret_cast<int *>(index_buffer.data()),
+															3 * sizeof(int), pos_buffer.size(), reinterpret_cast<float*>(pos_buffer.data()), sizeof(float) * 3);
+	btGImpactMeshShape* enemyShape = new btGImpactMeshShape(indexVertexArrays);
+	enemyShape->updateBound();
+
+	btCollisionDispatcher * dispatcher = static_cast<btCollisionDispatcher *>(world->getDispatcher());
+	btGImpactCollisionAlgorithm::registerAlgorithm(dispatcher);
+
 	btDefaultMotionState* enemyMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(x, y, z)));
 	btScalar mass = 5;
 	btVector3 inertia(0, 0, 0);
@@ -171,13 +185,16 @@ void GameLogic::collide(unit* unitA, unit* unitB, float impulse)
 void GameLogic::update(const DisplayState &display_state, const GestureState &gesture_state) {
 	_state.frame++;
 
-	if(_state.frame % 60 == 0)
+	if(_state.frame == 60 || _state.frame == 120 || _state.frame == 180)//if(_state.frame % 60 == 0)
 		generateEnemy();
+
+	
 
 	world->stepSimulation(1 / 60.f, 10); //todo: change fps
 
 	auto head_trans = _state.organs[13].obj->getWorldTransform();
 	auto head_origin = head_trans.getOrigin();
+
 	for(auto& e : _state.enemies)
 	{
 		auto enemy_trans = e->obj->getWorldTransform();
@@ -210,6 +227,17 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 		unit* unitA = (unit*)(bA->getUserPointer());
 		unit* unitB = (unit*)(bB->getUserPointer());
 
+		int numContacts = contactManifold->getNumContacts();
+
+		for(int j = 0; j < numContacts; j++)
+		{
+			btManifoldPoint& pt = contactManifold->getContactPoint(j);
+			if(pt.getDistance() <= 0.f)
+			{
+				std::cout << "Collide! Impulse is " << pt.getAppliedImpulse() << " unitA is " << unitA << " unitB is " << unitB << std::endl;
+			}
+		}
+
 		if(!unitA || !unitB)
 			continue;
 
@@ -219,13 +247,12 @@ void GameLogic::update(const DisplayState &display_state, const GestureState &ge
 		if(unitA->getType() > unitB->getType())
 			std::swap(unitA, unitB);
 
-		int numContacts = contactManifold->getNumContacts();
 		for(int j = 0; j < numContacts; j++)
 		{
 			btManifoldPoint& pt = contactManifold->getContactPoint(j);
 			if(pt.getDistance() <= 0.f)
 			{
-				std::cout << pt.getAppliedImpulse() << std::endl;
+				std::cout << "Collide! Impulse is " << pt.getAppliedImpulse() << std::endl;
 				collide(unitA, unitB, pt.getAppliedImpulse());
 			}
 		}

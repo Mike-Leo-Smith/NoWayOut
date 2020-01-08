@@ -57,6 +57,8 @@ public:
     void draw(Shader &shader);
     void set_transform(glm::mat4 transform) noexcept { _transform = transform; }
     [[nodiscard]] glm::mat4 transform() const noexcept { return _transform; }
-    [[nodiscard]] const std::vector<glm::vec3> &position_buffer() const noexcept { return _position_buffer; }
-    [[nodiscard]] const std::vector<uint32_t> &index_buffer() const noexcept { return _index_buffer; }
+	[[nodiscard]] const std::vector<glm::vec3> &position_buffer() const noexcept { return _position_buffer; }
+	[[nodiscard]] const std::vector<uint32_t> &index_buffer() const noexcept { return _index_buffer; }
+	[[nodiscard]] std::vector<glm::vec3> &position_buffer() noexcept { return _position_buffer; }
+	[[nodiscard]] std::vector<uint32_t> &index_buffer() noexcept { return _index_buffer; }
 };

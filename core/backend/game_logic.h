@@ -7,6 +7,8 @@
 #include "frame_render.h"
 #include "gesture_capture.h"
 #include <btBulletDynamicsCommon.h>
+#include "BulletCollision/Gimpact/btGImpactShape.h"
+#include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
 #include <vector>
 
 struct unit
@@ -112,6 +114,6 @@ public:
     [[nodiscard]] static std::unique_ptr<GameLogic> create(Args &&...args) noexcept {
         auto instance = std::make_unique<GameLogic>(std::forward<Args>(args)...);
         instance->init();
-        return instance;
+        return instance; 
     }
 };
