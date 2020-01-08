@@ -100,13 +100,17 @@ void FrameRender::_create_shadow_map() {
     glBindTexture(GL_TEXTURE_2D, _shadow_texture_handle);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glm::vec4 border_color{1.0, 1.0, 1.0, 1.0 };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border_color.x);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024u, 1024u, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     
     glGenFramebuffers(1, &_shadow_fbo_handle);
     glBindFramebuffer(GL_FRAMEBUFFER, _shadow_fbo_handle);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _shadow_texture_handle, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         throw std::runtime_error{util::serialize("Shadowmap framebuffer incomplete!")};
     }
@@ -118,14 +122,17 @@ void FrameRender::_shadow_pass(const GameState &game_state) {
     glBindFramebuffer(GL_FRAMEBUFFER, _shadow_fbo_handle);
     glViewport(0, 0, 1024, 1024);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
     glClear(GL_DEPTH_BUFFER_BIT);
     
-    auto light_projection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, 0.1f, 30.0f);
-    auto light_view = glm::lookAt(-10.0f * _light_direction, glm::vec3{}, glm::vec3{0.0f, 1.0f, 0.0f});
+    auto light_projection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, 1.0f, 25.0f);
+    auto light_view = glm::lookAt(10.0f * _light_direction, glm::vec3{}, glm::vec3{0.0f, 1.0f, 0.0f});
     _light_transform = light_projection * light_view;
     
     _shadow_shader->with([&](auto &shader) {
         shader["light_transform"] = _light_transform;
+        _ground->shadow(shader);
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
                 organ.geometry->shadow(shader);
@@ -138,4 +145,5 @@ void FrameRender::_shadow_pass(const GameState &game_state) {
             bullet->geometry->shadow(shader);
         }
     });
+    glDisable(GL_CULL_FACE);
 }
