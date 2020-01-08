@@ -31,12 +31,7 @@ void GameLogic::init() {
     btCollisionShape *head_shape = new btSphereShape(0.25f);
     
     organGeometries.resize(6);
-//	organGeometries[PLAYER_ARM] = Geometry::create( "arm.obj");
-//	organGeometries[PLAYER_LEG] = Geometry::create( "leg.obj");
-//	organGeometries[PLAYER_HAND] = Geometry::create("hand.obj");
-//	organGeometries[PLAYER_FOOT] = Geometry::create("foot.obj");
-//	organGeometries[PLAYER_BODY] = Geometry::create("body.obj");
-//	organGeometries[PLAYER_HEAD] = Geometry::create("head.obj"); 
+
     organGeometries[PLAYER_ARM] = Geometry::create("data/meshes/primitives/cylinder.obj");
     organGeometries[PLAYER_LEG] = Geometry::create("data/meshes/primitives/cylinder.obj");
     organGeometries[PLAYER_HAND] = Geometry::create("data/meshes/primitives/cylinder.obj");
@@ -45,11 +40,11 @@ void GameLogic::init() {
     organGeometries[PLAYER_HEAD] = Geometry::create("data/meshes/primitives/cylinder.obj");
     
     auto rotation = glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 0.0f, 0.0f});
-    enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj")));
+    //enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj")));
     //enemyBook.push_back(enemy_book_elem(1, 100, 1.5, true, Geometry::create("data/meshes/airplane/airplane.obj")));
-	//enemyBook.push_back(enemy_book_elem(0, 100, 0.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj"), bullet_info(0.1, 0.05, 15, 40)));
+	enemyBook.push_back(enemy_book_elem(0, 100, 0.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj"), bullet_info(0.1, 0.05, 15, 40)));
 
-	//bulletGeometry = Geometry::create("data/meshes/primitives/sphere.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.05f, 0.05f, 0.05f}));
+	bulletGeometry = Geometry::create("data/meshes/primitives/sphere.obj", glm::scale(glm::mat4{1.0f}, glm::vec3{0.05f, 0.05f, 0.05f}));
     
     organ_type_t organ_types[14]
         {PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_ARM, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_LEG, PLAYER_HAND, PLAYER_HAND, PLAYER_FOOT, PLAYER_FOOT, PLAYER_BODY,
@@ -275,6 +270,8 @@ void GameLogic::generateBullet()
 			float impulse = mass * e->speed;
 			direction *= impulse;
 			bulletRigidBody->applyCentralImpulse(direction);
+
+			std::cout << "generate bullet ok\n";
 		}
 	}
 }
