@@ -55,21 +55,23 @@ FrameRender::FrameRender()
     gladLoadGL();
     _framebuffer = Framebuffer::create();
     _shader = Shader::create(util::read_text_file("data/shaders/ggx.vert"), util::read_text_file("data/shaders/ggx.frag"));
-    _geometry = Geometry::create("data/meshes/primitives/cube.obj",
-                                 glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, 0.0f, -3.0f}) * glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 1.0f, 1.0f}));
+    _ground = Geometry::create("data/meshes/primitives/cube.obj",
+                               glm::scale(glm::mat4{1.0f}, glm::vec3{20.0f, 20.0f, 20.0f}) * glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, -1.0f, 0.0f}));
 }
 
 void FrameRender::_render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix) {
-
-//    auto p = glm::inverse(view_matrix) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
-//    std::cout << "(" << p.x << ", " << p.y << ", " << p.z << ")" << std::endl;
+    
+    glm::vec3 camera_position{glm::inverse(view_matrix) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f}};
     
     std::cout << game_state.playerHealth << std::endl;
     
     _shader->with([&](Shader &shader) {
         shader["view_matrix"] = view_matrix;
         shader["projection_matrix"] = projection_matrix;
-//        _geometry->draw(shader);
+        shader["camera_position"] = camera_position;
+        shader["light_direction"] = glm::vec3{1.0f, 1.0f, 1.0f};
+        shader["light_emission"] = glm::vec3{1.0f, 1.0f, 1.0f};
+        _ground->draw(shader);
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
                 organ.geometry->draw(shader);

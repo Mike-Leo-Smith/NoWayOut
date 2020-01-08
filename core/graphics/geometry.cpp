@@ -67,7 +67,6 @@ std::unique_ptr<Geometry> Geometry::create(const std::filesystem::path &path, gl
         materials.emplace_back(diffuse_color, diffuse_texture_handle, specular_color, specular_texture_handle, roughness);
     }
     
-    
     // process positions
     auto vertex_count = loader.GetAttrib().vertices.size() / 3;
     geometry->_position_buffer.resize(vertex_count);

@@ -26,7 +26,7 @@ private:
     std::vector<uint8_t> _pixel_buffer;
     std::unique_ptr<Framebuffer> _framebuffer;
     std::unique_ptr<Shader> _shader;
-    std::unique_ptr<Geometry> _geometry;
+    std::unique_ptr<Geometry> _ground;
     GLFWwindow *_window{nullptr};
     float _start_time{0.0f};
 
