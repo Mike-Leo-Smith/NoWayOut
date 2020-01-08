@@ -53,7 +53,8 @@ struct GameState;
 class GestureCapture {
 
 private:
-    GestureState _state;
+    GestureState _state{};
+    GestureState _state_copy;
     mutable std::mutex _mutex;
     std::thread _update_thread;
 
@@ -62,7 +63,8 @@ public:
     
     [[nodiscard]] const GestureState &state() const noexcept {
         std::lock_guard guard{_mutex};
-        return _state;
+        _state_copy = _state;
+        return _state_copy;
     }
     
     template<typename ...Args>
