@@ -12,6 +12,9 @@ in vec2 TexCoord;
 
 layout (location = 0) out vec3 FragColor;
 
+uniform sampler2D shadow_map;
+uniform mat4 light_transform;
+
 uniform sampler2D diffuse_texture;
 uniform sampler2D specular_texture;
 uniform int has_diffuse_texture;
@@ -23,6 +26,36 @@ uniform float roughness;
 uniform vec3 camera_position;
 uniform vec3 light_direction;
 uniform vec3 light_emission;
+
+float ShadowCalculation()
+{
+    // perform perspective divide
+    vec4 fragPosLightSpace = light_transform * vec4(Position, 1.0f);
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    if (projCoords.x <= 0.0f || projCoords.x >= 1.0f || projCoords.y <= 0.0f || projCoords.y >= 1.0f) {
+        return 0.0f;
+    }
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadow_map, projCoords.xy).r;
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // calculate bias (based on depth map resolution and slope)
+    vec3 normal = normalize(Normal);
+    vec3 lightDir = normalize(light_direction);
+    float bias = max(0.1f * (1.0 - dot(normal, lightDir)), 0.01f);
+    // PCF
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / vec2(textureSize(shadow_map, 0));
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            float pcfDepth = texture(shadow_map, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;
+        }
+    }
+    return shadow / 9.0;
+}
 
 float DistributionGGX(vec3 m, vec3 n, float alpha)
 {
@@ -91,8 +124,8 @@ void main() {
             specular = Ks * nominator / max(denominator, 0.001f);
         }
         vec3 diffuse = (1.0f - specular_strength) * Kd * abs(NdotL) * M_1_PI;
-//        float shadow = ShadowCalculation();
-        Lo = (diffuse + specular) * Li;
+        float shadow = ShadowCalculation();
+        Lo = (1.0f - shadow) * (diffuse + specular) * Li;
     }
     Lo += 0.1f * Kd;  // ambient
     FragColor = pow(Lo, vec3(1.0f / 2.2f));

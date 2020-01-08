@@ -26,12 +26,20 @@ private:
     std::vector<uint8_t> _pixel_buffer;
     std::unique_ptr<Framebuffer> _framebuffer;
     std::unique_ptr<Shader> _shader;
+    std::unique_ptr<Shader> _shadow_shader;
     std::unique_ptr<Geometry> _ground;
     GLFWwindow *_context{nullptr};
     float _start_time{0.0f};
+    uint32_t _shadow_fbo_handle;
+    uint32_t _shadow_texture_handle;
+    glm::vec3 _light_direction{1.0f, 1.0f, 1.0f};
+    glm::vec3 _light_emission{1.0f, 1.0f, 1.0f};
+    glm::mat4 _light_transform{1.0f};
 
 private:
-    void _render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix);
+    void _create_shadow_map();
+    void _render(const GameState &game_state, glm::mat4 view_matrix, glm::mat4 projection_matrix);
+    void _shadow_pass(const GameState &game_state);
 
 public:
     FrameRender();

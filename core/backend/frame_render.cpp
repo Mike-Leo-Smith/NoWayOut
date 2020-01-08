@@ -7,6 +7,8 @@
 
 void FrameRender::update(const GameState &game_state, const DisplayState &display_state) {
     
+    _shadow_pass(game_state);
+    
     _framebuffer->with([&](auto &framebuffer) {
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
@@ -23,14 +25,14 @@ void FrameRender::update(const GameState &game_state, const DisplayState &displa
             }
         }
         if (display_state.mode == DisplayMode::CENTER) {
-            _render(game_state, display_state.time, display_state.view_matrix[0] * head_transform, display_state.projection_matrix[0]);
+            _render(game_state, display_state.view_matrix[0] * head_transform, display_state.projection_matrix[0]);
         } else {
             glViewport(0, 0, config::eye_frame_width, config::eye_frame_height);
             glScissor(0, 0, config::eye_frame_width, config::eye_frame_height);
-            _render(game_state, display_state.time, display_state.view_matrix[0] * head_transform, display_state.projection_matrix[0]);
+            _render(game_state, display_state.view_matrix[0] * head_transform, display_state.projection_matrix[0]);
             glViewport(config::eye_frame_width, 0, config::eye_frame_width, config::eye_frame_height);
             glScissor(config::eye_frame_width, 0, config::eye_frame_width, config::eye_frame_height);
-            _render(game_state, display_state.time, display_state.view_matrix[1] * head_transform, display_state.projection_matrix[1]);
+            _render(game_state, display_state.view_matrix[1] * head_transform, display_state.projection_matrix[1]);
         }
     });
     _framebuffer->copy_pixels(_pixel_buffer);
@@ -56,11 +58,14 @@ FrameRender::FrameRender()
     gladLoadGL();
     _framebuffer = Framebuffer::create();
     _shader = Shader::create(util::read_text_file("data/shaders/ggx.vert"), util::read_text_file("data/shaders/ggx.frag"));
+    _shadow_shader = Shader::create(util::read_text_file("data/shaders/shadow.vert"), util::read_text_file("data/shaders/shadow.frag"));
     _ground = Geometry::create("data/meshes/primitives/plane.obj",
                                glm::scale(glm::mat4{1.0f}, glm::vec3{50.0f, 50.0f, 50.0f}));
+    
+    _create_shadow_map();
 }
 
-void FrameRender::_render(const GameState &game_state, float time, glm::mat4 view_matrix, glm::mat4 projection_matrix) {
+void FrameRender::_render(const GameState &game_state, glm::mat4 view_matrix, glm::mat4 projection_matrix) {
     
     glm::vec3 camera_position{glm::inverse(view_matrix) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f}};
     
@@ -68,8 +73,12 @@ void FrameRender::_render(const GameState &game_state, float time, glm::mat4 vie
         shader["view_matrix"] = view_matrix;
         shader["projection_matrix"] = projection_matrix;
         shader["camera_position"] = camera_position;
-        shader["light_direction"] = glm::vec3{1.0f, 1.0f, 1.0f};
-        shader["light_emission"] = glm::vec3{1.0f, 1.0f, 1.0f};
+        shader["light_direction"] = _light_direction;
+        shader["light_emission"] = _light_emission;
+        shader["light_transform"] = _light_transform;
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _shadow_texture_handle);
+        shader["shadow_map"] = 0;
         _ground->draw(shader);
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
@@ -81,6 +90,52 @@ void FrameRender::_render(const GameState &game_state, float time, glm::mat4 vie
         }
         for (auto &&bullet : game_state.bullets) {
             bullet->geometry->draw(shader);
+        }
+    });
+}
+
+void FrameRender::_create_shadow_map() {
+    
+    glGenTextures(1, &_shadow_texture_handle);
+    glBindTexture(GL_TEXTURE_2D, _shadow_texture_handle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024u, 1024u, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    
+    glGenFramebuffers(1, &_shadow_fbo_handle);
+    glBindFramebuffer(GL_FRAMEBUFFER, _shadow_fbo_handle);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _shadow_texture_handle, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        throw std::runtime_error{util::serialize("Shadowmap framebuffer incomplete!")};
+    }
+    
+}
+
+void FrameRender::_shadow_pass(const GameState &game_state) {
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, _shadow_fbo_handle);
+    glViewport(0, 0, 1024, 1024);
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    
+    auto light_projection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, 0.1f, 30.0f);
+    auto light_view = glm::lookAt(-10.0f * _light_direction, glm::vec3{}, glm::vec3{0.0f, 1.0f, 0.0f});
+    _light_transform = light_projection * light_view;
+    
+    _shadow_shader->with([&](auto &shader) {
+        shader["light_transform"] = _light_transform;
+        for (auto &&organ : game_state.organs) {
+            if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
+                organ.geometry->shadow(shader);
+            }
+        }
+        for (auto &&enemy : game_state.enemies) {
+            enemy->geometry->shadow(shader);
+        }
+        for (auto &&bullet : game_state.bullets) {
+            bullet->geometry->shadow(shader);
         }
     });
 }
