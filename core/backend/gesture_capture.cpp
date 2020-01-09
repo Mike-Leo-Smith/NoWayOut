@@ -20,13 +20,16 @@ GestureCapture::GestureCapture(std::string address) {
 
         char buffer[1024ul];
         glm::vec3 coords[25ul];
+        
+        glm::vec3 offset{0.0f, 1.0f, 0.0f};
 
         for (;;) {
 
             asio::read(socket, asio::buffer(buffer, 1024ul));
             std::istringstream ss{buffer};
-            for (auto &coord : coords) {
+            for (auto &&coord : coords) {
                 ss >> coord.x >> coord.y >> coord.z;
+                coord += offset;
             }
 
             std::lock_guard guard{_mutex};

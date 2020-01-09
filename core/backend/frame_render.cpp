@@ -20,7 +20,7 @@ void FrameRender::update(const GameState &game_state, const DisplayState &displa
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type == organ_type_t::PLAYER_HEAD) {
                 auto origin = organ.obj->getWorldTransform().getOrigin();
-                auto head_position = glm::vec3{origin.x(), origin.y() + 2.0f, origin.z()};
+                auto head_position = glm::vec3{origin.x(), origin.y(), origin.z()};
                 head_transform = glm::translate(glm::mat4{1.0f}, -head_position);
                 break;
             }
