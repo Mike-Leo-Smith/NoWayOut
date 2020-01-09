@@ -19,7 +19,7 @@ void Engine::run() noexcept {
     while (!_game_logic->should_exit()) {
         auto display_state = _network->receive_display_state();
         _game_logic->update(display_state, _gesture_capture->state());
-        _frame_render->update(_game_logic->state(), display_state);
+        _frame_render->update(_game_logic->state(), _gesture_capture->state(), display_state);
         _network->send_frame(_frame_render->frame());
         
         if (++_frame_count == 10ul) {

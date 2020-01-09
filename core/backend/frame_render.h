@@ -17,6 +17,7 @@
 
 #include <config/config.h>
 #include <display/display_state.h>
+#include "gesture_capture.h"
 
 struct GameState;
 
@@ -28,8 +29,8 @@ private:
     std::unique_ptr<Shader> _shader;
     std::unique_ptr<Shader> _shadow_shader;
     std::unique_ptr<Geometry> _ground;
+    std::unique_ptr<Geometry> _neck;
     GLFWwindow *_context{nullptr};
-    float _start_time{0.0f};
     uint32_t _shadow_fbo_handle{};
     uint32_t _shadow_texture_handle{};
     glm::vec3 _light_direction{1.0f, 1.0f, 1.0f};
@@ -38,13 +39,13 @@ private:
 
 private:
     void _create_shadow_map();
-    void _render(const GameState &game_state, glm::mat4 view_matrix, glm::mat4 projection_matrix);
-    void _shadow_pass(const GameState &game_state);
+    void _render(const GameState &game_state, const GestureState &gesture_state, glm::mat4 view_matrix, glm::mat4 projection_matrix);
+    void _shadow_pass(const GameState &game_state, const GestureState &gesture_state);
 
 public:
     FrameRender();
     [[nodiscard]] const std::vector<uint8_t> &frame() const noexcept { return _pixel_buffer; }
-    void update(const GameState &game_state, const DisplayState &display_state);
+    void update(const GameState &game_state, const GestureState &gesture_state, const DisplayState &display_state);
     
     template<typename ...Args>
     [[nodiscard]] static std::unique_ptr<FrameRender> create(Args &&...args) noexcept {

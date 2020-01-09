@@ -97,24 +97,12 @@ struct Onb {
             m_binormal.y = -m_normal.z;
             m_binormal.z = m_normal.y;
         }
-        m_binormal = normalize(m_binormal);
-        m_tangent = cross(m_binormal, m_normal);
-    }
-    
-    [[nodiscard]] glm::vec3 inverse_transform(glm::vec3 p) const {
-        return p.x * m_tangent + p.y * m_binormal + p.z * m_normal;
+        m_binormal = glm::normalize(m_binormal);
+        m_tangent = glm::normalize(cross(m_normal, m_binormal));
     }
     
     [[nodiscard]] glm::mat3 inverse_transform() const noexcept {
-        return {
-            m_tangent.x, m_binormal.x, m_normal.x,
-            m_tangent.y, m_binormal.y, m_normal.y,
-            m_tangent.z, m_binormal.z, m_normal.z,
-        };
-    }
-    
-    [[nodiscard]] glm::vec3 transform(glm::vec3 p) const {
-        return {glm::dot(p, m_tangent), glm::dot(p, m_binormal), glm::dot(p, m_normal)};
+        return {m_tangent, m_normal, m_binormal};
     }
     
     glm::vec3 m_tangent{};

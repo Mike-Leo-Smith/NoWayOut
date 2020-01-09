@@ -37,7 +37,7 @@ void GameLogic::init() {
 //    organGeometries[PLAYER_HAND] = Geometry::create("data/meshes/primitives/cylinder.obj");
     organGeometries[PLAYER_FOOT] = Geometry::create("data/meshes/primitives/cylinder.obj");
     organGeometries[PLAYER_BODY] = Geometry::create("data/meshes/primitives/cylinder.obj");
-    organGeometries[PLAYER_HEAD] = Geometry::create("data/meshes/primitives/cylinder.obj");
+    organGeometries[PLAYER_HEAD] = Geometry::create("data/meshes/primitives/sphere.obj");
     
     auto rotation = glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0f, 0.0f, 0.0f});
     //enemyBook.push_back(enemy_book_elem(0, 100, 1.5, true, Geometry::create("data/meshes/flying_horse/flying_horse.obj")));

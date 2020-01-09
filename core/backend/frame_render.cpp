@@ -5,9 +5,9 @@
 #include "frame_render.h"
 #include "game_logic.h"
 
-void FrameRender::update(const GameState &game_state, const DisplayState &display_state) {
+void FrameRender::update(const GameState &game_state, const GestureState &gesture_state, const DisplayState &display_state) {
     
-    _shadow_pass(game_state);
+    _shadow_pass(game_state, gesture_state);
     
     _framebuffer->with([&](auto &framebuffer) {
         glEnable(GL_DEPTH_TEST);
@@ -20,20 +20,20 @@ void FrameRender::update(const GameState &game_state, const DisplayState &displa
         for (auto &&organ : game_state.organs) {
             if (organ.organ_type == organ_type_t::PLAYER_HEAD) {
                 auto origin = organ.obj->getWorldTransform().getOrigin();
-                auto head_position = glm::vec3{origin.x(), origin.y(), origin.z()};
+                auto head_position = glm::vec3{origin.x(), origin.y(), origin.z()} - 5.0f * display_state.front();
                 head_transform = glm::translate(glm::mat4{1.0f}, -head_position);
                 break;
             }
         }
         if (display_state.mode == DisplayMode::CENTER) {
-            _render(game_state, display_state.view_matrix[0] * head_transform, display_state.projection_matrix[0]);
+            _render(game_state, gesture_state, display_state.view_matrix[0] * head_transform, display_state.projection_matrix[0]);
         } else {
             glViewport(0, 0, config::eye_frame_width, config::eye_frame_height);
             glScissor(0, 0, config::eye_frame_width, config::eye_frame_height);
-            _render(game_state, display_state.view_matrix[0] * head_transform, display_state.projection_matrix[0]);
+            _render(game_state, gesture_state, display_state.view_matrix[0] * head_transform, display_state.projection_matrix[0]);
             glViewport(config::eye_frame_width, 0, config::eye_frame_width, config::eye_frame_height);
             glScissor(config::eye_frame_width, 0, config::eye_frame_width, config::eye_frame_height);
-            _render(game_state, display_state.view_matrix[1] * head_transform, display_state.projection_matrix[1]);
+            _render(game_state, gesture_state, display_state.view_matrix[1] * head_transform, display_state.projection_matrix[1]);
         }
     });
     _framebuffer->copy_pixels(_pixel_buffer);
@@ -62,11 +62,11 @@ FrameRender::FrameRender()
     _shadow_shader = Shader::create(util::read_text_file("data/shaders/shadow.vert"), util::read_text_file("data/shaders/shadow.frag"));
     _ground = Geometry::create("data/meshes/primitives/plane.obj",
                                glm::scale(glm::mat4{1.0f}, glm::vec3{50.0f, 50.0f, 50.0f}));
-    
+    _neck = Geometry::create("data/meshes/primitives/cylinder.obj");
     _create_shadow_map();
 }
 
-void FrameRender::_render(const GameState &game_state, glm::mat4 view_matrix, glm::mat4 projection_matrix) {
+void FrameRender::_render(const GameState &game_state, const GestureState &gesture_state, glm::mat4 view_matrix, glm::mat4 projection_matrix) {
     
     glm::vec3 camera_position{glm::inverse(view_matrix) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f}};
     std::cout << "RenderEye: " << camera_position.x << " " << camera_position.y << " " << camera_position.z << std::endl;
@@ -82,10 +82,9 @@ void FrameRender::_render(const GameState &game_state, glm::mat4 view_matrix, gl
         glBindTexture(GL_TEXTURE_2D, _shadow_texture_handle);
         shader["shadow_map"] = 0;
         _ground->draw(shader, glm::mat4(1.0f));
-        for (auto &&organ : game_state.organs) {
-            if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-                organ.geometry->draw(shader, organ.transform());
-            }
+        _neck->draw(shader, gesture_state.neck.transform());
+        for (auto i = 0ul; i < game_state.organs.size(); i++) {
+            game_state.organs[i].geometry->draw(shader, gesture_state.nodes[i].transform());
         }
         for (auto &&enemy : game_state.enemies) {
             enemy->geometry->draw(shader, enemy->transform());
@@ -119,7 +118,7 @@ void FrameRender::_create_shadow_map() {
     
 }
 
-void FrameRender::_shadow_pass(const GameState &game_state) {
+void FrameRender::_shadow_pass(const GameState &game_state, const GestureState &gesture_state) {
     
     glBindFramebuffer(GL_FRAMEBUFFER, _shadow_fbo_handle);
     glViewport(0, 0, 2048, 2048);
@@ -128,17 +127,15 @@ void FrameRender::_shadow_pass(const GameState &game_state) {
     glCullFace(GL_FRONT);
     glClear(GL_DEPTH_BUFFER_BIT);
     
-    auto light_projection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, 1.0f, 25.0f); 
+    auto light_projection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, 1.0f, 25.0f);
     auto light_view = glm::lookAt(10.0f * _light_direction, glm::vec3{}, glm::vec3{0.0f, 1.0f, 0.0f});
     _light_transform = light_projection * light_view;
     
     _shadow_shader->with([&](auto &shader) {
         shader["light_transform"] = _light_transform;
-        _ground->shadow(shader, glm::mat4());
-        for (auto &&organ : game_state.organs) {
-            if (organ.organ_type != organ_type_t::PLAYER_HEAD) {
-                organ.geometry->shadow(shader, organ.transform());
-            }
+        _neck->shadow(shader, gesture_state.neck.transform());
+        for (auto i = 0ul; i < game_state.organs.size(); i++) {
+            game_state.organs[i].geometry->shadow(shader, gesture_state.nodes[i].transform());
         }
         for (auto &&enemy : game_state.enemies) {
             enemy->geometry->shadow(shader, enemy->transform());
